@@ -1,15 +1,11 @@
 .placement-tool { display: inline-flex; }
-.placement-flyout { position: relative; z-index: 1; display: flex; width: 100%; min-width: 0; max-width: 100%; flex: 0 0 auto; align-items: center; flex-wrap: wrap; gap: .55rem; padding: .55rem; overflow: hidden; border: 1px solid var(--panel-border); border-top: 0; color: inherit; background: var(--toolbar); transform-origin: top; animation: reveal-placement-toolbar 180ms ease-out; }
-.placement-flyout[hidden], #settlement-fields[hidden] { display: none; }
 .placement-content-row { display: flex; min-width: 0; flex: 1 1 24rem; align-items: center; flex-wrap: wrap; gap: .55rem; }
 #placement-title { white-space: nowrap; }
 #settlement-fields { display: flex; min-width: 0; flex: 1 1 20rem; align-items: center; flex-wrap: wrap; gap: .55rem; }
+#settlement-fields[hidden] { display: none; }
 .placement-field-row { display: flex; min-width: 0; flex: 1 1 10rem; align-items: center; gap: .45rem; }
 .placement-field-row > :is(input, select) { min-width: 0; flex: 1 1 auto; }
 #settlement-name { width: min(14rem, 100%); max-width: 100%; }
-.placement-flyout label { font-size: .9rem; }
 .placement-action-row { display: flex; flex: 0 0 auto; justify-content: flex-end; }
 #cancel-placement { flex: 0 0 auto; }
-@keyframes reveal-placement-toolbar { from { opacity: 0; transform: translateY(-.65rem) scaleY(.82); } to { opacity: 1; transform: none; } }
-@media (max-width: 700px) { .placement-flyout { align-items: stretch; } .placement-content-row, #settlement-fields { flex-basis: 100%; } .placement-action-row { width: 100%; } }
-@media (prefers-reduced-motion: reduce) { .placement-flyout { animation: none; } }
+@media (max-width: 700px) { .placement-content-row, #settlement-fields { flex-basis: 100%; } .placement-action-row { width: 100%; } }

@@ -4,6 +4,13 @@
 .selection-flyout .flyout-icon-button:disabled { cursor: not-allowed; opacity: .42; }
 .selection-flyout svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #map .settlement.is-selected .settlement-symbol,
-#map .mountain-symbol.is-selected path:first-child { filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 3px #1f7aff); stroke: #1f7aff; stroke-width: 5; }
+#map .mountain-symbol.is-selected path:first-child,
+#map .forest-object.is-selected path { filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 3px #1f7aff); stroke: #1f7aff; stroke-width: 5; }
+#map .road-layer [data-road-id].is-selected { stroke: #1f7aff; stroke-width: 6; }
 #map .selection-box { fill: rgb(31 122 255 / .14); stroke: #1f7aff; stroke-width: 2; stroke-dasharray: 8 5; vector-effect: non-scaling-stroke; pointer-events: none; }
+#map .road-bend-handle { fill: #fff5db; stroke: #1f7aff; stroke-width: 3; vector-effect: non-scaling-stroke; cursor: move; }
+#map .road-bend-handle.is-selected { fill: #1f7aff; }
+.selection-edit { display: flex; align-items: center; gap: .45rem; }
+.selection-edit[hidden] { display: none; }
+.selection-edit label { display: flex; align-items: center; gap: .35rem; }
 @media (max-width: 700px) { #selection-description { min-width: 0; flex: 1; } }

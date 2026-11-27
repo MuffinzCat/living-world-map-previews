@@ -38,12 +38,22 @@ function placeLiveBrushLayer() { const target = map.querySelector(".terrain-laye
 function refreshMap({ sync = true } = {}) { renderWorld(map, world); applyView(); makeInteractionLayer(); if (sync) syncJSON(); }
 function updateOutline(point) { if (mode !== "brush" || !inside(point)) { brushOutline.setAttribute("visibility", "hidden"); return; } brushOutline.setAttribute("cx", point[0]); brushOutline.setAttribute("cy", point[1]); brushOutline.setAttribute("r", Number(brushSize.value) / 2); brushOutline.setAttribute("visibility", "visible"); }
 function updatePlacementUI() { const kind = pendingPlacement?.kind; placementStatus.textContent = kind === "settlement" ? `Place settlement: ${pendingPlacement.name}` : kind === "mountain" ? "Place mountain" : "No feature awaiting placement"; cancelPlacementButton.hidden = !kind; document.querySelectorAll("button[data-placement]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.placement === kind))); }
-function setMode(next) { if (next !== "placement" && pendingPlacement) { pendingPlacement = null; updatePlacementUI(); } mode = next; map.dataset.mode = mode; document.querySelectorAll("button[data-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === mode))); if (mode !== "brush") brushOutline.setAttribute("visibility", "hidden"); if (mode !== "placement") setStatus(modeHelp[mode]); }
+function setMode(next) { if (next !== "placement" && pendingPlacement) { pendingPlacement = null; updatePlacementUI(); } mode = next; map.dataset.mode = mode; document.querySelectorAll("button[data-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === mode))); if (mode !== "brush") brushOutline.setAttribute("visibility", "hidden"); if (mode !== "placement") setStatus(modeHelp[mode]); if (mode === "select") { const toolbar = document.querySelector("#tool-options-toolbar"); const selection = document.querySelector("#selection-controls"); if (toolbar && selection) { toolbar.hidden = false; toolbar.querySelectorAll(".tool-options-content").forEach(item => { item.hidden = item !== selection; }); } } }
 function cancelPlacement(message = "Placement cancelled.") { if (!pendingPlacement) return; pendingPlacement = null; updatePlacementUI(); setMode("select"); setStatus(`${message} ${modeHelp.select}`); }
 function ensureCurrentJSON() { return dataOutput.value === lastJSON || applyJSON(false); }
 function applyJSON(reset = true) { try { world = validateWorld(JSON.parse(dataOutput.value)); pendingPlacement = null; updatePlacementUI(); syncJSON(); if (reset) resetView(); refreshMap(); setMode("select"); setStatus(`JSON applied. ${modeHelp.select}`); return true; } catch (error) { setStatus(`Could not apply JSON: ${error.message}`); return false; } }
 function download(content, type, filename) { const url = URL.createObjectURL(new Blob([content], { type })); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
-function updateRoads(settlement) { map.querySelectorAll(".road-layer line").forEach(line => { if (line.dataset.from === settlement.id) { line.setAttribute("x1", settlement.x); line.setAttribute("y1", settlement.y); } if (line.dataset.to === settlement.id) { line.setAttribute("x2", settlement.x); line.setAttribute("y2", settlement.y); } }); }
+function updateRoads(settlement) {
+  const settlements = new Map(world.settlements.map(item => [item.id, item]));
+  for (const road of world.roads) {
+    if (road.from !== settlement.id && road.to !== settlement.id) continue;
+    const from = settlements.get(road.from);
+    const to = settlements.get(road.to);
+    const path = map.querySelector(`.road-layer [data-road-id="${CSS.escape(road.id)}"]`);
+    const points = [[from.x, from.y], ...(road.points ?? []), [to.x, to.y]];
+    path?.setAttribute("d", points.map(([x, y], index) => `${index ? "L" : "M"} ${x} ${y}`).join(" "));
+  }
+}
 function settlementId(name) { const base = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "settlement"; let id = base; let suffix = 2; while (world.settlements.some(item => item.id === id)) id = `${base}-${suffix++}`; return id; }
 function beginSettlementPlacement() { if (!ensureCurrentJSON()) return; const name = settlementName.value.trim(); if (!name) { setStatus("Enter a settlement name before placing it."); return; } pendingPlacement = { kind: "settlement", name, type: settlementType.value }; updatePlacementUI(); setMode("placement"); setStatus(`Click the map to place ${name}. Press Escape or Cancel placement to stop.`); }
 function beginMountainPlacement() { if (!ensureCurrentJSON()) return; pendingPlacement = { kind: "mountain" }; updatePlacementUI(); setMode("placement"); setStatus("Click the map to place a mountain. Press Escape or Cancel placement to stop."); }
@@ -90,3 +100,12 @@ document.querySelector("#load").addEventListener("click", () => { try { const sa
 document.querySelector("#export-json").addEventListener("click", () => { if (ensureCurrentJSON()) download(serialiseWorld(world), "application/json", "world.json"); });
 document.querySelector("#export-svg").addEventListener("click", () => { if (!ensureCurrentJSON()) return; const copy = map.cloneNode(true); copy.querySelectorAll(".live-brush-layer, .brush-outline").forEach(node => node.remove()); copy.setAttribute("viewBox", `0 0 ${world.canvas.width} ${world.canvas.height}`); copy.setAttribute("width", world.canvas.width); copy.setAttribute("height", world.canvas.height); download(new XMLSerializer().serializeToString(copy), "image/svg+xml", "world.svg"); });
 try { world = await loadWorld("data/sample-world.json"); resetView(); refreshMap(); brushSizeValue.value = brushSize.value; updatePlacementUI(); setMode("select"); } catch (error) { console.error(error); setStatus(`Could not load the sample world: ${error.message}`); }
+
+new MutationObserver(() => {
+  if (map.dataset.mode !== "select") return;
+  const toolbar = document.querySelector("#tool-options-toolbar");
+  const selection = document.querySelector("#selection-controls");
+  if (!toolbar || !selection) return;
+  toolbar.hidden = false;
+  toolbar.querySelectorAll(".tool-options-content").forEach(item => { item.hidden = item !== selection; });
+}).observe(map, { attributes: true, attributeFilter: ["data-mode"] });

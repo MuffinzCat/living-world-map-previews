@@ -163,13 +163,20 @@ function finishBox(event) {
   boxGesture.rectangle.remove();
   boxGesture = null;
   const hits = [];
-  for (const node of map.querySelectorAll('.settlement, .mountain-symbol[data-object-id], .forest-object[data-object-id]')) {
-    const bounds = node.getBBox();
-    if (bounds.x <= box.x + box.width && bounds.x + bounds.width >= box.x && bounds.y <= box.y + box.height && bounds.y + bounds.height >= box.y) {
-      if (node.matches(".settlement")) hits.push({ kind: "settlement", id: node.dataset.id });
-      if (node.matches(".mountain-symbol")) hits.push({ kind: "mountain", id: node.dataset.objectId });
-      if (node.matches(".forest-object")) hits.push({ kind: "forest", id: node.dataset.objectId });
-    }
+  const world = worldData();
+  const intersects = (item, halfWidth, halfHeight) =>
+    item.x + halfWidth >= box.x &&
+    item.x - halfWidth <= box.x + box.width &&
+    item.y + halfHeight >= box.y &&
+    item.y - halfHeight <= box.y + box.height;
+  for (const settlement of world.settlements) {
+    if (intersects(settlement, 18, 18)) hits.push({ kind: "settlement", id: settlement.id });
+  }
+  for (const mountain of world.mountains) {
+    if (intersects(mountain, 22, 22)) hits.push({ kind: "mountain", id: mountain.id });
+  }
+  for (const forest of world.forests) {
+    if (intersects(forest, 18, 22)) hits.push({ kind: "forest", id: forest.id });
   }
   selected = unique(hits);
   refreshSelection();
@@ -247,7 +254,13 @@ map.addEventListener("pointerdown", event => {
 }, true);
 map.addEventListener("pointermove", event => { updateBox(event); updateDrag(event); }, true);
 map.addEventListener("pointerup", event => { finishBox(event); finishDrag(event); }, true);
-map.addEventListener("pointercancel", event => { finishBox(event); finishDrag(event); }, true);
+map.addEventListener("pointercancel", event => {
+  if (boxGesture && boxGesture.pointerId === event.pointerId) {
+    boxGesture.rectangle.remove();
+    boxGesture = null;
+  }
+  finishDrag(event);
+}, true);
 
 selectButton.addEventListener("click", refreshSelection);
 duplicateButton.addEventListener("click", duplicateSelected);

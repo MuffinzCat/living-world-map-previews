@@ -22,8 +22,12 @@ button { cursor: pointer; }
 button:hover { background: var(--control-hover); }
 button[aria-pressed="true"] { color: var(--pressed-text); background: var(--pressed); }
 button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, dialog:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.icon-button { position: relative; display: inline-grid; width: 2.75rem; min-height: 2.75rem; place-items: center; padding: .4rem; }
+.icon-button { --icon-separator: var(--control); position: relative; display: inline-grid; width: 2.75rem; min-height: 2.75rem; place-items: center; padding: .4rem; }
+.icon-button:hover { --icon-separator: var(--control-hover); }
+.icon-button[aria-pressed="true"] { --icon-separator: var(--pressed); }
 .mode-icon { width: 1.65rem; height: 1.65rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.move-symbol-outline { fill: none; stroke: var(--icon-separator); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.paintbrush-icon { fill: currentColor; stroke: none; }
 .icon-button::after { position: absolute; z-index: 20; top: calc(100% + .45rem); left: 50%; padding: .3rem .5rem; border-radius: 3px; color: var(--tooltip-text); background: var(--tooltip); content: attr(data-tooltip); font-size: .8rem; line-height: 1; white-space: nowrap; opacity: 0; pointer-events: none; transform: translate(-50%, -.2rem); transition: opacity 120ms ease, transform 120ms ease; }
 .icon-button:hover::after, .icon-button:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
 .toolbar label, .toolbar output, #placement-status { font-size: .9rem; }

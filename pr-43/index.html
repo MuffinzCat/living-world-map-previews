@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="A lightweight, data-first fantasy map editor.">
+  <title>Living World Map</title><link rel="stylesheet" href="styles/app.css?v=e8fc562"><script type="module" src="src/main.js?v=e8fc562"></script><script type="module" src="src/flyout.js?v=e8fc562"></script>
+</head>
+<body>
+  <aside id="pr-preview-build" aria-label="Pull request preview build">
+  <strong>Pull request preview</strong>
+  <span>PR #43 · test/preview-status-lifecycle · e8fc562</span>
+  <span>Published 2026-11-27 09:45:58 UTC</span>
+</aside>
+  <header class="site-header"><div><h1>Living World Map</h1><p>A little atlas for a world in progress.</p></div><div class="actions"><button id="open-json" type="button" aria-haspopup="dialog" aria-controls="json-flyout" aria-expanded="false">World JSON</button><button id="save" type="button">Save in browser</button><button id="load" type="button">Load saved world</button><button id="export-json" type="button">Export JSON</button><button id="export-svg" type="button">Export SVG</button></div></header>
+  <main class="app-shell">
+    <section class="panel" aria-labelledby="map-heading">
+      <div class="panel-heading"><div><h2 id="map-heading">Map</h2><p id="status" role="status" aria-live="polite">Loading sample world…</p></div></div>
+      <div class="toolbar" role="group" aria-label="Map modes"><button type="button" data-mode="select" aria-pressed="true">Move settlements</button><button type="button" data-mode="pan" aria-pressed="false">Move map</button><button id="brush-mode" type="button" data-mode="brush" aria-pressed="false">Brush</button><span class="toolbar-spacer"></span><button id="zoom-in" type="button" aria-label="Zoom in">+</button><button id="zoom-out" type="button" aria-label="Zoom out">−</button><button id="reset-view" type="button">Reset view</button></div>
+      <div class="toolbar" aria-label="Brush controls"><label for="brush-type">Brush</label><select id="brush-type"><option value="land">Land</option><option value="water">Water</option><option value="mountainRange">Mountain range</option></select><label for="brush-size">Size</label><input id="brush-size" type="range" min="10" max="120" step="2" value="40"><output id="brush-size-value" for="brush-size">40</output><button id="undo-brush" type="button">Undo last stroke</button></div>
+      <div class="toolbar" aria-label="Add map feature"><span id="placement-status">No feature awaiting placement</span><label for="settlement-name">Name</label><input id="settlement-name" type="text" value="New settlement"><label for="settlement-type">Type</label><select id="settlement-type"><option>town</option><option>city</option><option>village</option><option>castle</option></select><button id="add-settlement" type="button" data-placement="settlement" aria-pressed="false">Add settlement</button><button id="add-mountain" type="button" data-placement="mountain" aria-pressed="false">Add mountain</button><button id="cancel-placement" type="button" hidden>Cancel placement</button></div>
+      <div class="map-frame"><svg id="map" xmlns="http://<scrubbed-url-domain>/2000/svg" role="img" aria-label="Fantasy world map"></svg></div>
+    </section>
+  </main>
+  <dialog id="json-flyout" class="data-panel" aria-labelledby="data-heading"><div class="panel-heading data-heading"><div><h2 id="data-heading">World data</h2><p>Versioned JSON is the source of truth.</p></div><button id="close-json" type="button" aria-label="Close world JSON">Close</button></div><label class="visually-hidden" for="world-data">World JSON</label><textarea id="world-data" spellcheck="false"></textarea><div class="flyout-actions"><button id="apply-json" type="button">Apply JSON</button></div></dialog>
+  <noscript>This editor requires JavaScript to run.</noscript>
+</body>
+</html>

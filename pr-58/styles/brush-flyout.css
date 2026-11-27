@@ -1,8 +1,0 @@
-.brush-tool { display: inline-flex; }
-.brush-flyout { justify-content: flex-start; }
-.brush-flyout label, .brush-flyout output { align-self: center; }
-.flyout-icon-button { position: relative; display: inline-grid; width: 2.35rem; min-height: 2.35rem; place-items: center; padding: .35rem; }
-.flyout-icon-button svg { width: 1.4rem; height: 1.4rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
-.flyout-icon-button::after { position: absolute; z-index: 20; top: calc(100% + .4rem); right: 0; padding: .3rem .5rem; border-radius: 3px; color: var(--tooltip-text); background: var(--tooltip); content: attr(data-tooltip); font-size: .8rem; line-height: 1; white-space: nowrap; opacity: 0; pointer-events: none; transform: translateY(-.2rem); transition: opacity 120ms ease, transform 120ms ease; }
-.flyout-icon-button:hover::after, .flyout-icon-button:focus-visible::after { opacity: 1; transform: translateY(0); }
-@media (max-width: 700px) { .brush-flyout { justify-content: stretch; } .brush-flyout > :is(select, input) { flex: 1 1 10rem; } }

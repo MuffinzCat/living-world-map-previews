@@ -1,21 +1,22 @@
 const brushButton = document.querySelector("#brush-mode");
 const brushControls = document.querySelector("#brush-controls");
 
-function setBrushFlyout(open) {
+function syncBrushToolbar() {
+  const open = brushButton.getAttribute("aria-pressed") === "true";
   brushControls.hidden = !open;
   brushButton.setAttribute("aria-expanded", String(open));
 }
 
-document.querySelectorAll("button[data-mode]").forEach(button => {
-  button.addEventListener("click", () => setBrushFlyout(button === brushButton));
+new MutationObserver(syncBrushToolbar).observe(brushButton, {
+  attributes: true,
+  attributeFilter: ["aria-pressed"],
 });
-document.querySelectorAll("button[data-placement]").forEach(button => {
-  button.addEventListener("click", () => setBrushFlyout(false));
-});
+
+syncBrushToolbar();
 
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && !brushControls.hidden) {
-    setBrushFlyout(false);
+    document.querySelector('button[data-mode="pan"]')?.click();
     brushButton.focus();
   }
 });

@@ -95,15 +95,17 @@ function duplicateSelected() {
   }, `${target.kind === "settlement" ? "Settlement" : "Mountain"} duplicated.`);
 }
 
-map.addEventListener("click", event => {
-  if (map.dataset.mode !== "select") return;
-  const settlement = event.target.closest(".settlement");
-  const mountain = event.target.closest('.mountain-symbol[data-object-kind="mountain"]');
+map.addEventListener("pointerdown", event => {
+  if (event.button !== 0 || map.dataset.mode !== "select") return;
+  decorateMountains();
+  const path = event.composedPath();
+  const settlement = path.find(node => node instanceof Element && node.matches(".settlement"));
+  const mountain = path.find(node => node instanceof Element && node.matches('.mountain-symbol[data-object-kind="mountain"]'));
   if (settlement) selected = { kind: "settlement", id: settlement.dataset.id };
   else if (mountain) selected = { kind: "mountain", index: Number(mountain.dataset.objectIndex) };
   else { clearSelection(); return; }
   refreshSelection();
-});
+}, true);
 duplicateButton.addEventListener("click", duplicateSelected);
 deleteButton.addEventListener("click", deleteSelected);
 document.addEventListener("keydown", event => {

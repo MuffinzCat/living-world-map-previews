@@ -4,7 +4,7 @@ function hideOtherToolbars(activeToolbar) {
   toolbars.forEach(toolbar => {
     if (toolbar === activeToolbar) return;
     toolbar.hidden = true;
-    toolbar.classList.remove("is-open");
+    toolbar.classList.remove("is-open", "skip-open-animation");
   });
 }
 
@@ -12,15 +12,14 @@ export function showToolOptions(toolbar) {
   const switching = toolbar.dataset.switching === "true";
   delete toolbar.dataset.switching;
   hideOtherToolbars(toolbar);
-  if (switching) toolbar.style.animation = "none";
+  toolbar.classList.toggle("skip-open-animation", switching);
   toolbar.hidden = false;
   toolbar.classList.add("is-open");
-  if (switching) requestAnimationFrame(() => toolbar.style.removeProperty("animation"));
 }
 
 export function hideToolOptions(toolbar) {
   toolbar.hidden = true;
-  toolbar.classList.remove("is-open");
+  toolbar.classList.remove("is-open", "skip-open-animation");
 }
 
 document.addEventListener("click", event => {

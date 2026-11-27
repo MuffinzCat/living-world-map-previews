@@ -6,6 +6,7 @@
   min-height: var(--toolbar-flyout-min-height);
   align-content: center;
 }
+.tool-options-toolbar.skip-open-animation { animation: none; }
 
 .brush-flyout { justify-content: flex-start; }
 .brush-flyout label, .brush-flyout output { align-self: center; }

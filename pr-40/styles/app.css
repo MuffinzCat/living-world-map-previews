@@ -1,0 +1,43 @@
+:root { color-scheme: light; font-family: Georgia, "Times New Roman", serif; color: #382b20; background: #e9dfc8; --paper: #f7eedb; --panel-border: #b5a17e; --header: #3d3026; --header-text: #f5e9cf; --map-surround: #82745d; --flyout-width: min(38rem, 38vw); }
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { display: flex; min-height: 0; margin: 0; flex-direction: column; }
+h1, h2, p { margin: 0; }
+.site-header { display: flex; flex: 0 0 auto; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1.5rem; color: var(--header-text); background: var(--header); }
+.site-header h1 { font-size: 1.6rem; }
+.site-header p, .panel-heading p { margin-top: .3rem; }
+.actions, .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }
+.site-header, .app-shell { transition: margin-right 180ms ease; }
+body.json-flyout-open .site-header, body.json-flyout-open .app-shell { margin-right: var(--flyout-width); }
+.app-shell { min-height: 0; flex: 1 1 auto; padding: 1rem; overflow: hidden; }
+.panel { display: flex; min-width: 0; height: 100%; min-height: 0; flex-direction: column; }
+.panel-heading { flex: 0 0 auto; padding: .65rem; border: 1px solid var(--panel-border); background: var(--paper); }
+.data-heading { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.toolbar { flex: 0 0 auto; padding: .55rem; border: 1px solid var(--panel-border); border-top: 0; background: #d7c6a5; }
+.toolbar-spacer { flex: 1; }
+button, select, input { font: inherit; }
+button, select, input[type="text"] { padding: .4rem .55rem; border: 1px solid #998261; border-radius: 3px; color: #382b20; background: #fbf3e0; }
+button { cursor: pointer; }
+button:hover { background: #ead9b5; }
+button[aria-pressed="true"] { color: #fff8e7; background: #604936; }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, dialog:focus-visible { outline: 2px solid #956329; outline-offset: 2px; }
+.toolbar label, .toolbar output, #placement-status { font-size: .9rem; }
+#placement-status { min-width: 12rem; }
+#settlement-name { width: 10rem; }
+#brush-size { width: min(12rem, 35vw); }
+#brush-size-value { min-width: 2.5rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+.map-frame { width: 100%; min-height: 0; flex: 1 1 auto; overflow: hidden; border: 1px solid var(--panel-border); border-top: 0; background: var(--map-surround); }
+#map { display: block; width: 100%; height: 100%; user-select: none; touch-action: none; }
+#map[data-mode="pan"] { cursor: grab; }
+#map[data-mode="placement"] { cursor: crosshair; }
+#map[data-mode="brush"] { cursor: none; }
+#map[data-mode="select"] .settlement { cursor: grab; }
+.brush-outline { fill: none; stroke: #2f251c; stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+.live-brush-layer { pointer-events: none; }
+.data-panel:not([open]) { display: none; }
+.data-panel[open] { position: fixed; inset: 0 0 0 auto; z-index: 10; display: flex; width: var(--flyout-width); height: 100dvh; max-width: none; max-height: none; flex-direction: column; margin: 0; padding: 0; border: 0; border-left: 1px solid var(--panel-border); color: #382b20; background: var(--paper); box-shadow: -8px 0 24px #251b1260; }
+.data-panel textarea { min-height: 0; flex: 1; width: 100%; resize: none; padding: .8rem; border: 0; border-block: 1px solid var(--panel-border); color: #30281f; background: #fffaf0; font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; tab-size: 2; }
+.flyout-actions { display: flex; flex: 0 0 auto; justify-content: flex-end; padding: .65rem; background: var(--paper); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 900px) { :root { --flyout-width: min(30rem, 46vw); } .site-header { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 700px) { :root { --flyout-width: 100vw; } body.json-flyout-open .site-header, body.json-flyout-open .app-shell { margin-right: 0; } .app-shell { padding: .5rem; } }

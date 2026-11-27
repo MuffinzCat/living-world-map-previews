@@ -1,13 +1,8 @@
-import { showToolOptions } from "./tool-options.js";
 import {
   SETTLEMENT_TYPES,
-  addRoad,
-  addRoadPoint,
   deleteObjects,
   duplicateObjects,
   editSettlement,
-  moveRoadPoint,
-  removeRoadPoint,
 } from "./editor-actions.js";
 
 const map = document.querySelector("#map");
@@ -18,9 +13,6 @@ const selectButton = document.querySelector('button[data-mode="select"]');
 let selected = [];
 let boxGesture = null;
 let dragGesture = null;
-let bendGesture = null;
-let roadEditId = null;
-let bendEditIndex = null;
 
 const controls = document.createElement("div");
 controls.id = "selection-controls";
@@ -34,16 +26,6 @@ controls.innerHTML = `
     <label>Name <input id="selected-settlement-name" type="text"></label>
     <label>Type <select id="selected-settlement-type">${SETTLEMENT_TYPES.map(type => `<option value="${type}">${type}</option>`).join("")}</select></label>
     <button id="apply-settlement-edit" type="button">Apply</button>
-  </span>
-  <span id="road-edit" class="selection-edit" hidden>
-    <button id="add-road-point" type="button">Add bend</button>
-    <button id="remove-road-point" type="button" disabled>Remove bend</button>
-  </span>
-  <span id="road-create" class="selection-edit">
-    <label>From <select id="road-from"></select></label>
-    <label>To <select id="road-to"></select></label>
-    <button id="create-road" type="button">Create road</button>
-    <button id="cancel-road" type="button">Cancel</button>
   </span>
   <button id="duplicate-selection" class="flyout-icon-button" type="button" aria-label="Duplicate selected objects" data-tooltip="Duplicate selected objects" disabled>
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
@@ -60,14 +42,9 @@ const description = controls.querySelector("#selection-description");
 const settlementEdit = controls.querySelector("#settlement-edit");
 const settlementName = controls.querySelector("#selected-settlement-name");
 const settlementType = controls.querySelector("#selected-settlement-type");
-const roadEdit = controls.querySelector("#road-edit");
-const roadCreate = controls.querySelector("#road-create");
-const roadFrom = controls.querySelector("#road-from");
-const roadTo = controls.querySelector("#road-to");
 const duplicateButton = controls.querySelector("#duplicate-selection");
 const deleteButton = controls.querySelector("#delete-selection");
 const clearButton = controls.querySelector("#clear-selection");
-const removePointButton = controls.querySelector("#remove-road-point");
 
 function worldData() {
   if (!dataOutput.value) return { settlements: [], mountains: [], forests: [], roads: [] };
@@ -94,16 +71,6 @@ function settleSelections(world) {
     (item.kind === "road" && roadIds.has(item.id))
   );
 }
-function refreshRoadOptions() {
-  const world = worldData();
-  const options = world.settlements.map(item => `<option value="${item.id}">${item.name}</option>`).join("");
-  const fromValue = roadFrom.value;
-  const toValue = roadTo.value;
-  roadFrom.innerHTML = options;
-  roadTo.innerHTML = options;
-  if (fromValue) roadFrom.value = fromValue;
-  if (toValue) roadTo.value = toValue;
-}
 function updateToolbar() {
   const count = selected.length;
   description.textContent = count ? `${count} object${count === 1 ? "" : "s"} selected` : "Select an object or drag a box";
@@ -116,23 +83,16 @@ function updateToolbar() {
     settlementName.value = settlementTarget.name;
     if (SETTLEMENT_TYPES.includes(settlementTarget.type)) settlementType.value = settlementTarget.type;
   }
-  roadEdit.hidden = !roadEditId;
-  removePointButton.disabled = bendEditIndex === null;
-  refreshRoadOptions();
 }
 function refreshSelection() {
   map.querySelectorAll(".is-selected").forEach(node => node.classList.remove("is-selected"));
   settleSelections(worldData());
   selected.forEach(item => nodeFor(item)?.classList.add("is-selected"));
-  refreshRoadHandles();
   updateToolbar();
 }
 function clearSelection(message) {
   selected = [];
-  roadEditId = null;
-  bendEditIndex = null;
   map.querySelectorAll(".is-selected").forEach(node => node.classList.remove("is-selected"));
-  refreshRoadHandles();
   updateToolbar();
   if (message) status.textContent = message;
 }
@@ -151,7 +111,6 @@ function deleteSelected() {
   const targets = [...selected];
   applyEdit(world => deleteObjects(world, targets), `${targets.length} object${targets.length === 1 ? "" : "s"} deleted.`);
   selected = [];
-  roadEditId = null;
 }
 function duplicateSelected() {
   if (!selected.length) return;
@@ -246,7 +205,6 @@ function updateDrag(event) {
   }
   dataOutput.value = `${JSON.stringify(world, null, 2)}\n`;
   updateRoadPaths(world);
-  refreshRoadHandles();
 }
 function finishDrag(event) {
   if (!dragGesture || event.pointerId !== dragGesture.pointerId) return;
@@ -267,66 +225,15 @@ function updateRoadPaths(world) {
     path?.setAttribute("d", points.map(([x, y], index) => `${index ? "L" : "M"} ${x} ${y}`).join(" "));
   }
 }
-function refreshRoadHandles() {
-  map.querySelectorAll(".road-edit-layer").forEach(node => node.remove());
-  if (!roadEditId) return;
-  const world = worldData();
-  const road = world.roads.find(item => item.id === roadEditId);
-  if (!road) { roadEditId = null; return; }
-  const layer = document.createElementNS(map.namespaceURI, "g");
-  layer.setAttribute("class", "road-edit-layer");
-  (road.points ?? []).forEach((point, index) => {
-    const handle = document.createElementNS(map.namespaceURI, "circle");
-    handle.setAttribute("class", `road-bend-handle${bendEditIndex === index ? " is-selected" : ""}`);
-    handle.setAttribute("data-bend-index", String(index));
-    handle.setAttribute("cx", point[0]); handle.setAttribute("cy", point[1]); handle.setAttribute("r", 7);
-    layer.append(handle);
-  });
-  map.append(layer);
-}
-function startBendDrag(event, index) {
-  bendGesture = { pointerId: event.pointerId, roadId: roadEditId, index };
-  bendEditIndex = index;
-  document.dispatchEvent(new CustomEvent("history-action-start"));
-  map.setPointerCapture(event.pointerId);
-  refreshRoadHandles();
-}
-function updateBendDrag(event) {
-  if (!bendGesture || event.pointerId !== bendGesture.pointerId) return;
-  const [x, y] = mapPoint(event);
-  const world = worldData();
-  moveRoadPoint(world, bendGesture.roadId, bendGesture.index, [x, y]);
-  dataOutput.value = `${JSON.stringify(world, null, 2)}\n`;
-  updateRoadPaths(world);
-  refreshRoadHandles();
-  const handle = map.querySelector(`.road-bend-handle[data-bend-index="${bendGesture.index}"]`);
-  handle?.setAttribute("cx", x); handle?.setAttribute("cy", y);
-}
-function finishBendDrag(event) {
-  if (!bendGesture || event.pointerId !== bendGesture.pointerId) return;
-  bendGesture = null;
-  document.dispatchEvent(new CustomEvent("history-action-finish"));
-  document.dispatchEvent(new CustomEvent("history-restore", { detail: { state: dataOutput.value } }));
-  status.textContent = "Road bend point moved.";
-  refreshSelection();
-}
-
 map.addEventListener("pointerdown", event => {
   if (event.button !== 0 || map.dataset.mode !== "select") return;
-  const handle = event.composedPath().find(node => node instanceof Element && node.matches(".road-bend-handle"));
-  if (handle) {
-    startBendDrag(event, Number(handle.dataset.bendIndex));
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    return;
-  }
+  if (event.composedPath().some(node => node instanceof Element && node.matches(".road-bend-handle"))) return;
   const target = selectionFromTarget(event);
   if (target) {
     if (event.shiftKey) selected = unique([...selected, target]);
     else if (target.kind === "road") selected = [target];
     else selected = selected.some(item => item.kind === target.kind && item.id === target.id) ? selected : [target];
-    if (target.kind === "road") { roadEditId = target.id; bendEditIndex = null; }
-    else { roadEditId = null; bendEditIndex = null; }
+    document.dispatchEvent(new CustomEvent("road-selected", { detail: { id: target.kind === "road" ? target.id : null } }));
     refreshSelection();
     if (target.kind !== "road" || event.shiftKey) startDrag(event, target);
     event.preventDefault();
@@ -338,17 +245,11 @@ map.addEventListener("pointerdown", event => {
   event.preventDefault();
   event.stopImmediatePropagation();
 }, true);
-map.addEventListener("pointermove", event => { updateBox(event); updateDrag(event); updateBendDrag(event); }, true);
-map.addEventListener("pointerup", event => { finishBox(event); finishDrag(event); finishBendDrag(event); }, true);
-map.addEventListener("pointercancel", event => { finishBox(event); finishDrag(event); finishBendDrag(event); }, true);
+map.addEventListener("pointermove", event => { updateBox(event); updateDrag(event); }, true);
+map.addEventListener("pointerup", event => { finishBox(event); finishDrag(event); }, true);
+map.addEventListener("pointercancel", event => { finishBox(event); finishDrag(event); }, true);
 
-selectButton.addEventListener("click", () => { showToolOptions(controls); refreshSelection(); });
-document.addEventListener("click", event => {
-  if (event.target.closest('button[data-mode="select"]')) {
-    showToolOptions(controls);
-    refreshSelection();
-  }
-});
+selectButton.addEventListener("click", refreshSelection);
 duplicateButton.addEventListener("click", duplicateSelected);
 deleteButton.addEventListener("click", deleteSelected);
 clearButton.addEventListener("click", () => clearSelection("Selection cleared."));
@@ -357,30 +258,6 @@ controls.querySelector("#apply-settlement-edit").addEventListener("click", () =>
   try {
     applyEdit(world => editSettlement(world, selected[0].id, settlementName.value, settlementType.value), "Settlement updated.");
   } catch (error) { status.textContent = error.message; }
-});
-controls.querySelector("#create-road").addEventListener("click", () => {
-  try {
-    applyEdit(world => { roadEditId = addRoad(world, roadFrom.value, roadTo.value); }, "Road created.");
-  } catch (error) { status.textContent = error.message; }
-});
-controls.querySelector("#cancel-road").addEventListener("click", () => {
-  status.textContent = "Road creation cancelled.";
-});
-controls.querySelector("#add-road-point").addEventListener("click", () => {
-  if (!roadEditId) return;
-  const world = worldData();
-  const road = world.roads.find(item => item.id === roadEditId);
-  const from = world.settlements.find(item => item.id === road?.from);
-  const to = world.settlements.find(item => item.id === road?.to);
-  if (!road || !from || !to) return;
-  const point = road.points.length
-    ? [(from.x + to.x) / 2 + 20, (from.y + to.y) / 2 + 20]
-    : [(from.x + to.x) / 2, (from.y + to.y) / 2];
-  applyEdit(world => { bendEditIndex = addRoadPoint(world, roadEditId, point); }, "Road bend point added.");
-});
-removePointButton.addEventListener("click", () => {
-  if (!roadEditId || bendEditIndex === null) return;
-  applyEdit(world => { removeRoadPoint(world, roadEditId, bendEditIndex); bendEditIndex = null; }, "Road bend point removed.");
 });
 document.addEventListener("keydown", event => {
   const editingText = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement;
@@ -393,12 +270,4 @@ document.querySelector("#export-svg").addEventListener("click", () => {
   map.querySelectorAll(".is-selected, .selection-box, .road-edit-layer").forEach(node => node.classList.contains("is-selected") ? node.classList.remove("is-selected") : node.remove());
   setTimeout(refreshSelection);
 }, true);
-refreshRoadOptions();
 updateToolbar();
-
-const readyForWorld = setInterval(() => {
-  if (!worldData().settlements.length) return;
-  clearInterval(readyForWorld);
-  refreshRoadOptions();
-  updateToolbar();
-}, 10);

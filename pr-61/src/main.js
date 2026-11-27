@@ -28,7 +28,7 @@ function clamp(value, minimum, maximum) { return Math.max(minimum, Math.min(maxi
 function setStatus(message) { status.textContent = message; }
 function applyView() { map.setAttribute("viewBox", `${view.x} ${view.y} ${view.width} ${view.height}`); }
 function resetView() { view = { x: 0, y: 0, width: world.canvas.width, height: world.canvas.height }; applyView(); }
-function syncJSON() { dataOutput.value = serialiseWorld(world); lastJSON = dataOutput.value; }
+function syncJSON() { dataOutput.value = serialiseWorld(world); lastJSON = dataOutput.value; document.dispatchEvent(new CustomEvent("world-data-changed")); }
 function rounded([x, y]) { return [Math.round(x * 10) / 10, Math.round(y * 10) / 10]; }
 function inside([x, y]) { return x >= 0 && y >= 0 && x <= world.canvas.width && y <= world.canvas.height; }
 function mapPoint(event) { const point = map.createSVGPoint(); point.x = event.clientX; point.y = event.clientY; const transformed = point.matrixTransform(map.getScreenCTM().inverse()); return rounded([transformed.x, transformed.y]); }
@@ -38,7 +38,7 @@ function placeLiveBrushLayer() { const target = map.querySelector(".terrain-laye
 function refreshMap({ sync = true } = {}) { renderWorld(map, world); applyView(); makeInteractionLayer(); if (sync) syncJSON(); }
 function updateOutline(point) { if (mode !== "brush" || !inside(point)) { brushOutline.setAttribute("visibility", "hidden"); return; } brushOutline.setAttribute("cx", point[0]); brushOutline.setAttribute("cy", point[1]); brushOutline.setAttribute("r", Number(brushSize.value) / 2); brushOutline.setAttribute("visibility", "visible"); }
 function updatePlacementUI() { const kind = pendingPlacement?.kind; placementStatus.textContent = kind === "settlement" ? `Place settlement: ${pendingPlacement.name}` : kind === "mountain" ? "Place mountain" : "No feature awaiting placement"; cancelPlacementButton.hidden = !kind; document.querySelectorAll("button[data-placement]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.placement === kind))); }
-function setMode(next) { if (next !== "placement" && pendingPlacement) { pendingPlacement = null; updatePlacementUI(); } mode = next; map.dataset.mode = mode; document.querySelectorAll("button[data-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === mode))); if (mode !== "brush") brushOutline.setAttribute("visibility", "hidden"); if (mode !== "placement") setStatus(modeHelp[mode]); if (mode === "select") { const toolbar = document.querySelector("#tool-options-toolbar"); const selection = document.querySelector("#selection-controls"); if (toolbar && selection) { toolbar.hidden = false; toolbar.querySelectorAll(".tool-options-content").forEach(item => { item.hidden = item !== selection; }); } } }
+function setMode(next) { if (next !== "placement" && pendingPlacement) { pendingPlacement = null; updatePlacementUI(); } mode = next; map.dataset.mode = mode; document.querySelectorAll("button[data-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === mode))); if (mode !== "brush") brushOutline.setAttribute("visibility", "hidden"); if (mode !== "placement") setStatus(modeHelp[mode]); }
 function cancelPlacement(message = "Placement cancelled.") { if (!pendingPlacement) return; pendingPlacement = null; updatePlacementUI(); setMode("select"); setStatus(`${message} ${modeHelp.select}`); }
 function ensureCurrentJSON() { return dataOutput.value === lastJSON || applyJSON(false); }
 function applyJSON(reset = true) { try { world = validateWorld(JSON.parse(dataOutput.value)); pendingPlacement = null; updatePlacementUI(); syncJSON(); if (reset) resetView(); refreshMap(); setMode("select"); setStatus(`JSON applied. ${modeHelp.select}`); return true; } catch (error) { setStatus(`Could not apply JSON: ${error.message}`); return false; } }
@@ -100,12 +100,3 @@ document.querySelector("#load").addEventListener("click", () => { try { const sa
 document.querySelector("#export-json").addEventListener("click", () => { if (ensureCurrentJSON()) download(serialiseWorld(world), "application/json", "world.json"); });
 document.querySelector("#export-svg").addEventListener("click", () => { if (!ensureCurrentJSON()) return; const copy = map.cloneNode(true); copy.querySelectorAll(".live-brush-layer, .brush-outline").forEach(node => node.remove()); copy.setAttribute("viewBox", `0 0 ${world.canvas.width} ${world.canvas.height}`); copy.setAttribute("width", world.canvas.width); copy.setAttribute("height", world.canvas.height); download(new XMLSerializer().serializeToString(copy), "image/svg+xml", "world.svg"); });
 try { world = await loadWorld("data/sample-world.json"); resetView(); refreshMap(); brushSizeValue.value = brushSize.value; updatePlacementUI(); setMode("select"); } catch (error) { console.error(error); setStatus(`Could not load the sample world: ${error.message}`); }
-
-new MutationObserver(() => {
-  if (map.dataset.mode !== "select") return;
-  const toolbar = document.querySelector("#tool-options-toolbar");
-  const selection = document.querySelector("#selection-controls");
-  if (!toolbar || !selection) return;
-  toolbar.hidden = false;
-  toolbar.querySelectorAll(".tool-options-content").forEach(item => { item.hidden = item !== selection; });
-}).observe(map, { attributes: true, attributeFilter: ["data-mode"] });

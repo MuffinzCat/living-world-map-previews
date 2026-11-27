@@ -24,9 +24,6 @@ function openPlacementFlyout(button) {
 
 placementButtons.forEach(button => {
   button.addEventListener("click", () => openPlacementFlyout(button));
-  new MutationObserver(() => {
-    if (button === activeButton && button.getAttribute("aria-pressed") === "false") closePlacementFlyout();
-  }).observe(button, { attributes: true, attributeFilter: ["aria-pressed"] });
 });
 
 document.addEventListener("keydown", event => {

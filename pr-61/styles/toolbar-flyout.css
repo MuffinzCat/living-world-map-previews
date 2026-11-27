@@ -1,6 +1,6 @@
 :root { --toolbar-flyout-min-height: 3.55rem; }
 
-.placement-tool, .brush-tool { display: inline-flex; }
+.placement-tool, .roads-tool, .brush-tool { display: inline-flex; }
 
 .tool-options-toolbar {
   min-height: var(--toolbar-flyout-min-height);

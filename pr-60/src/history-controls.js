@@ -31,12 +31,10 @@ function finishAction() {
 }
 function restore(state, message) {
   if (state === null) return;
-  const viewBox = map.getAttribute("viewBox");
   restoring = true;
-  dataOutput.value = state;
-  applyButton.click();
-  map.setAttribute("viewBox", viewBox);
-  map.dispatchEvent(new CustomEvent("history-view-restored", { detail: { viewBox } }));
+  document.dispatchEvent(
+    new CustomEvent("history-restore", { detail: { state } }),
+  );
   restoring = false;
   status.textContent = message;
   updateControls();

@@ -75,7 +75,12 @@ document.addEventListener("keydown", event => { if (event.key === "Escape" && pe
 document.querySelectorAll("button[data-mode]").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
 settlementName.addEventListener("input", updatePendingSettlementName);
 brushSize.addEventListener("input", () => { brushSizeValue.value = brushSize.value; brushSizeValue.textContent = brushSize.value; brushOutline.setAttribute("r", Number(brushSize.value) / 2); });
-document.querySelector("#zoom-in").addEventListener("click", () => { view = zoomView(view, .8, { x: view.x + view.width / 2, y: view.y + view.height / 2 }); applyView(); }); document.querySelector("#zoom-out").addEventListener("click", () => { view = zoomView(view, 1.25, { x: view.x + view.width / 2, y: view.y + view.height / 2 }); applyView(); }); document.querySelector("#reset-view").addEventListener("click", resetView); document.querySelector("#apply-json").addEventListener("click", () => applyJSON(true));
+document.querySelector("#zoom-in").addEventListener("click", () => { view = zoomView(view, .8, { x: view.x + view.width / 2, y: view.y + view.height / 2 }); applyView(); }); document.querySelector("#zoom-out").addEventListener("click", () => { view = zoomView(view, 1.25, { x: view.x + view.width / 2, y: view.y + view.height / 2 }); applyView(); }); document.querySelector("#reset-view").addEventListener("click", resetView);
+document.querySelector("#apply-json").addEventListener("click", () => applyJSON(true));
+document.addEventListener("history-restore", event => {
+  dataOutput.value = event.detail.state;
+  applyJSON(false);
+});
 document.querySelector("#undo-brush").addEventListener("click", () => { if (!ensureCurrentJSON()) return; if (!world.brushStrokes.length) { setStatus("There are no brush strokes to undo."); return; } world.brushStrokes.pop(); refreshMap(); setStatus("Last brush stroke undone."); });
 document.querySelector("#add-settlement").addEventListener("click", beginSettlementPlacement);
 document.querySelector("#add-mountain").addEventListener("click", beginMountainPlacement);

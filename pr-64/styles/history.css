@@ -1,6 +1,0 @@
-.history-controls { display: inline-flex; align-items: center; gap: .45rem; }
-.history-limit-control { display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
-#history-limit { width: 4.5rem; padding: .4rem .35rem; border: 1px solid var(--control-border); border-radius: 3px; color: var(--control-text); background: var(--control); }
-.icon-button:disabled { cursor: default; opacity: .45; }
-.icon-button:disabled:hover { background: var(--control); }
-@media (max-width: 700px) { .history-controls { flex-wrap: wrap; } }

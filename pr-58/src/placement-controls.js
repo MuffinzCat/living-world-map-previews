@@ -16,7 +16,6 @@ function openPlacementFlyout(button) {
   const settlement = button.dataset.placement === "settlement";
   placementTitle.textContent = settlement ? "Place settlement" : "Place mountain";
   settlementFields.hidden = !settlement;
-  button.parentElement.append(placementFlyout);
   placementFlyout.hidden = false;
   button.setAttribute("aria-expanded", "true");
 }

@@ -48,7 +48,9 @@ export function generateMountainSymbols(world, stroke) {
   const random = randomFrom(hashString(`${stroke.id}:${JSON.stringify(stroke.points)}:${stroke.size}`));
   const candidates = [];
   const radius = Math.max(5, stroke.size / 2);
-  const spacing = Math.max(18, radius * 0.75);
+  const spacing = Math.max(42, radius * 1.8);
+  const symbolSize = () => Math.round((26 + random() * 12) * 10) / 10;
+  const minimumSpacing = (a, b) => (a + b) * 0.58;
 
   if (stroke.points.length === 1) {
     const [x, y] = stroke.points[0];
@@ -56,7 +58,7 @@ export function generateMountainSymbols(world, stroke) {
     for (let index = 0; index < count; index += 1) {
       const angle = random() * Math.PI * 2;
       const distance = Math.sqrt(random()) * radius * 0.82;
-      candidates.push([x + Math.cos(angle) * distance, y + Math.sin(angle) * distance]);
+      candidates.push([x + Math.cos(angle) * distance, y + Math.sin(angle) * distance, symbolSize()]);
     }
   } else {
     for (let segment = 0; segment < stroke.points.length - 1; segment += 1) {
@@ -69,26 +71,31 @@ export function generateMountainSymbols(world, stroke) {
         const centerX = a[0] + (b[0] - a[0]) * ratio;
         const centerY = a[1] + (b[1] - a[1]) * ratio;
         const offsetAngle = random() * Math.PI * 2;
-        const offsetDistance = random() * radius * 0.62;
-        candidates.push([centerX + Math.cos(offsetAngle) * offsetDistance, centerY + Math.sin(offsetAngle) * offsetDistance]);
+        const offsetDistance = random() * radius * 0.24;
+        candidates.push([centerX + Math.cos(offsetAngle) * offsetDistance, centerY + Math.sin(offsetAngle) * offsetDistance, symbolSize()]);
       }
     }
   }
 
   const used = world.mountains.filter(item => !item.suppressed);
   const accepted = [];
-  for (const [x, y] of candidates) {
+  for (const [x, y, size] of candidates) {
     if (!pointWithinBrush([x, y], stroke)) continue;
-    if (used.some(item => Math.hypot(item.x - x, item.y - y) < spacing * 0.42)) continue;
-    if (accepted.some(point => Math.hypot(point[0] - x, point[1] - y) < spacing * 0.42)) continue;
-    accepted.push([Math.round(x * 10) / 10, Math.round(y * 10) / 10]);
+    if (used.some(item => {
+      const itemSize = item.size ?? 32;
+      return Math.hypot(item.x - x, item.y - y) < minimumSpacing(itemSize, size);
+    })) continue;
+    if (accepted.some(item => {
+      return Math.hypot(item.x - x, item.y - y) < minimumSpacing(item.size, size);
+    })) continue;
+    accepted.push({ x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, size });
   }
 
-  return accepted.map(([x, y], index) => ({
+  return accepted.map(({ x, y, size }, index) => ({
     id: `mountain-${stroke.id}-${index + 1}`,
     x,
     y,
-    size: Math.round((26 + random() * 12) * 10) / 10,
+    size,
     sourceId: stroke.id,
     seed: hashString(`${stroke.id}:${index}`)
   }));

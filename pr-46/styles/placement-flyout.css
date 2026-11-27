@@ -6,8 +6,8 @@
 #placement-title { padding-top: .55rem; white-space: nowrap; }
 #settlement-fields { display: flex; flex: 1 1 20rem; flex-direction: column; gap: .45rem; min-width: 0; }
 .placement-field-row { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .45rem; min-width: 0; }
-#settlement-name { width: 100%; min-width: 0; max-width: 100%; }
-#settlement-type { justify-self: start; }
+.placement-field-row > :is(input, select) { justify-self: end; }
+#settlement-name { width: min(14rem, 100%); min-width: 0; max-width: 100%; }
 .placement-flyout label { font-size: .9rem; }
 .placement-action-row { display: flex; justify-content: flex-end; width: 100%; padding-top: .55rem; border-top: 1px solid var(--panel-border); }
 #cancel-placement { flex: 0 0 auto; }

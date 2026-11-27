@@ -1,4 +1,4 @@
-import { addRoad, addRoadPoint, moveRoadPoint, removeRoadPoint } from "./editor-actions.js";
+import { addRoad, addRoadPoint, insertRoadPoint, moveRoadPoint, removeRoadPoint } from "./editor-actions.js";
 import { hideToolOptions, showToolOptions } from "./tool-options.js";
 
 const map = document.querySelector("#map");
@@ -129,6 +129,12 @@ document.addEventListener("road-selected", event => {
   selectedPointIndex = null;
   refreshHandles();
   if (selectedRoadId) showToolOptions(roadsControls, roadsButton);
+});
+document.addEventListener("road-click", event => {
+  if (event.detail.id !== selectedRoadId) return;
+  applyEdit(world => {
+    selectedPointIndex = insertRoadPoint(world, selectedRoadId, event.detail.point);
+  }, "Road bend point added.");
 });
 document.addEventListener("world-data-changed", refreshOptions);
 document.addEventListener("history-restore", () => {

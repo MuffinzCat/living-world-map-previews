@@ -92,6 +92,7 @@ function refreshSelection() {
 }
 function clearSelection(message) {
   selected = [];
+  document.dispatchEvent(new CustomEvent("road-selected", { detail: { id: null } }));
   map.querySelectorAll(".is-selected").forEach(node => node.classList.remove("is-selected"));
   updateToolbar();
   if (message) status.textContent = message;
@@ -111,6 +112,7 @@ function deleteSelected() {
   const targets = [...selected];
   applyEdit(world => deleteObjects(world, targets), `${targets.length} object${targets.length === 1 ? "" : "s"} deleted.`);
   selected = [];
+  document.dispatchEvent(new CustomEvent("road-selected", { detail: { id: null } }));
 }
 function duplicateSelected() {
   if (!selected.length) return;
@@ -191,7 +193,7 @@ function startDrag(event, target) {
   const originals = selected.map(item => {
     const collection = item.kind === "settlement" ? "settlements" : item.kind === "mountain" ? "mountains" : item.kind === "forest" ? "forests" : null;
     const object = collection ? world[collection].find(value => value.id === item.id) : null;
-    return object ? { item, object, x: object.x, y: object.y } : null;
+    return object ? { item, collection, x: object.x, y: object.y } : null;
   }).filter(Boolean);
   if (!originals.length) return;
   dragGesture = { pointerId: event.pointerId, start: point, originals };
@@ -205,10 +207,12 @@ function updateDrag(event) {
   const dy = y - dragGesture.start[1];
   const world = worldData();
   for (const original of dragGesture.originals) {
-    original.object.x = Math.round((original.x + dx) * 10) / 10;
-    original.object.y = Math.round((original.y + dy) * 10) / 10;
+    const object = world[original.collection].find(value => value.id === original.item.id);
+    if (!object) continue;
+    object.x = Math.round((original.x + dx) * 10) / 10;
+    object.y = Math.round((original.y + dy) * 10) / 10;
     const node = nodeFor(original.item);
-    node?.setAttribute("transform", `translate(${original.object.x} ${original.object.y})`);
+    node?.setAttribute("transform", `translate(${object.x} ${object.y})`);
   }
   dataOutput.value = `${JSON.stringify(world, null, 2)}\n`;
   updateRoadPaths(world);
@@ -237,10 +241,14 @@ map.addEventListener("pointerdown", event => {
   if (event.composedPath().some(node => node instanceof Element && node.matches(".road-bend-handle"))) return;
   const target = selectionFromTarget(event);
   if (target) {
+    const alreadySelected = selected.some(item => item.kind === target.kind && item.id === target.id);
     if (event.shiftKey) selected = unique([...selected, target]);
     else if (target.kind === "road") selected = [target];
     else selected = selected.some(item => item.kind === target.kind && item.id === target.id) ? selected : [target];
     document.dispatchEvent(new CustomEvent("road-selected", { detail: { id: target.kind === "road" ? target.id : null } }));
+    if (target.kind === "road" && alreadySelected && !event.shiftKey) {
+      document.dispatchEvent(new CustomEvent("road-click", { detail: { id: target.id, point: mapPoint(event) } }));
+    }
     refreshSelection();
     if (target.kind !== "road" || event.shiftKey) startDrag(event, target);
     event.preventDefault();

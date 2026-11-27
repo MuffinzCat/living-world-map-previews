@@ -107,3 +107,35 @@ export function removeRoadPoint(world, roadId, index) {
   if (!road || !road.points[index]) throw new Error("The road bend point no longer exists.");
   road.points.splice(index, 1);
 }
+
+export function insertRoadPoint(world, roadId, point) {
+  const road = world.roads.find(item => item.id === roadId);
+  if (!road) throw new Error("The selected road no longer exists.");
+  const from = world.settlements.find(item => item.id === road.from);
+  const to = world.settlements.find(item => item.id === road.to);
+  if (!from || !to) throw new Error("The road endpoints no longer exist.");
+  const path = [[from.x, from.y], ...(road.points ?? []), [to.x, to.y]];
+  let closestSegment = 0;
+  let closestDistance = Infinity;
+  let closestParameter = 0;
+  for (let index = 0; index < path.length - 1; index += 1) {
+    const [ax, ay] = path[index];
+    const [bx, by] = path[index + 1];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const lengthSquared = dx * dx + dy * dy;
+    const parameter = lengthSquared
+      ? Math.max(0, Math.min(1, ((point[0] - ax) * dx + (point[1] - ay) * dy) / lengthSquared))
+      : 0;
+    const [projectX, projectY] = [ax + parameter * dx, ay + parameter * dy];
+    const distance = Math.hypot(point[0] - projectX, point[1] - projectY);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestSegment = index;
+      closestParameter = parameter;
+    }
+  }
+  const insertIndex = closestSegment;
+  road.points.splice(insertIndex, 0, [point[0], point[1]]);
+  return insertIndex;
+}

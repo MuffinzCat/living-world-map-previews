@@ -1,11 +1,13 @@
+import { hideToolOptions, showToolOptions } from "./tool-options.js";
+
 const brushButton = document.querySelector("#brush-mode");
 const brushControls = document.querySelector("#brush-controls");
 const modeButtons = [...document.querySelectorAll("button[data-mode]")];
 
 function syncBrushToolbar() {
   const open = brushButton.getAttribute("aria-pressed") === "true";
-  brushControls.toggleAttribute("hidden", !open);
-  brushControls.classList.toggle("is-open", open);
+  if (open) showToolOptions(brushControls);
+  else hideToolOptions(brushControls);
   brushButton.setAttribute("aria-expanded", String(open));
 }
 
@@ -25,7 +27,7 @@ new MutationObserver(syncBrushToolbar).observe(brushButton, {
 syncBrushToolbar();
 
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && brushControls.classList.contains("is-open")) {
+  if (event.key === "Escape" && !brushControls.hidden) {
     document.querySelector('button[data-mode="pan"]')?.click();
     brushButton.focus();
   }

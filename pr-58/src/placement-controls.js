@@ -1,3 +1,5 @@
+import { hideToolOptions, showToolOptions } from "./tool-options.js";
+
 const placementFlyout = document.querySelector("#placement-controls");
 const placementTitle = document.querySelector("#placement-title");
 const settlementFields = document.querySelector("#settlement-fields");
@@ -5,7 +7,7 @@ const placementButtons = [...document.querySelectorAll("button[data-placement]")
 let activeButton = null;
 
 function closePlacementFlyout() {
-  placementFlyout.hidden = true;
+  hideToolOptions(placementFlyout);
   activeButton?.setAttribute("aria-expanded", "false");
   activeButton = null;
 }
@@ -16,7 +18,7 @@ function openPlacementFlyout(button) {
   const settlement = button.dataset.placement === "settlement";
   placementTitle.textContent = settlement ? "Place settlement" : "Place mountain";
   settlementFields.hidden = !settlement;
-  placementFlyout.hidden = false;
+  showToolOptions(placementFlyout);
   button.setAttribute("aria-expanded", "true");
 }
 

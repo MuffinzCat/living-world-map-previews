@@ -1,7 +1,5 @@
 export const palette = Object.freeze({ land: "#e5d3a5", water: "#355b57", ink: "#51402d", road: "#8a5738", river: "#477f8a", forest: "#647854", mountain: "#806d56", paper: "#f7eedb" });
 
-let brushMaskId = 0;
-
 function svgElement(parent, name, attributes = {}) {
   const node = parent.ownerDocument.createElementNS(parent.namespaceURI, name);
   for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
@@ -13,10 +11,17 @@ function pathData(points) { return points.map(([x, y], index) => `${index === 0 
 function drawMountain(parent, x, y, size = 32) { const group = append(parent, "g", { class: "mountain-symbol" }); append(group, "path", { d: `M ${x - size / 2} ${y + size / 3} L ${x} ${y - size / 2} L ${x + size / 2} ${y + size / 3} Z`, fill: palette.land, stroke: palette.mountain, "stroke-width": 2, "stroke-linejoin": "round" }); append(group, "path", { d: `M ${x} ${y - size / 2} L ${x + size / 8} ${y + size / 8}`, fill: "none", stroke: palette.mountain, "stroke-width": 1.5 }); }
 function pointsAlongPath(points, spacing) { const output = [points[0]]; let carried = 0; for (let index = 1; index < points.length; index += 1) { const [ax, ay] = points[index - 1]; const [bx, by] = points[index]; const length = Math.hypot(bx - ax, by - ay); if (!length) continue; let distance = spacing - carried; while (distance <= length && output.length < 1000) { const ratio = distance / length; output.push([ax + (bx - ax) * ratio, ay + (by - ay) * ratio]); distance += spacing; } carried = Math.max(0, length - (distance - spacing)); if (output.length === 1000) break; } return output; }
 function drawMountainRange(parent, range) { const size = range.size ?? 40; for (const [x, y] of pointsAlongPath(range.points, Math.max(8, size * .65))) drawMountain(parent, x, y, size); }
-export function renderBrushStroke(parent, stroke, className = "brush-stroke") { const points = stroke.points.length === 1 ? [stroke.points[0], stroke.points[0]] : stroke.points; const colour = stroke.type === "mountainRange" ? palette.mountain : palette[stroke.type]; const maskId = `brush-mask-${brushMaskId++}`; const mask = append(parent, "mask", { id: maskId, x: "-100%", y: "-100%", width: "300%", height: "300%", "maskUnits": "objectBoundingBox" }); append(mask, "path", { d: pathData(points), fill: "none", stroke: "white", "stroke-width": stroke.size, "stroke-linecap": "round", "stroke-linejoin": "round" }); append(parent, "rect", { class: className, x: "-100000", y: "-100000", width: "200000", height: "200000", fill: colour, mask: `url(#${maskId})` }); }
+export function renderBrushStroke(parent, stroke, className = "brush-stroke") {
+  const colour = stroke.type === "mountainRange" ? palette.mountain : palette[stroke.type];
+  if (stroke.points.length === 1) {
+    const [x, y] = stroke.points[0];
+    append(parent, "circle", { class: className, cx: x, cy: y, r: stroke.size / 2, fill: colour });
+    return;
+  }
+  append(parent, "path", { class: className, d: pathData(stroke.points), fill: "none", stroke: colour, "stroke-width": stroke.size, "stroke-linecap": "round", "stroke-linejoin": "round" });
+}
 function drawNotes(parent, world) { if (!world.notes.trim()) return; const width = Math.min(390, world.canvas.width - 40); const x = world.canvas.width - width - 20; const y = world.canvas.height - 105; const group = append(parent, "g", { class: "map-notes", "pointer-events": "none" }); append(group, "rect", { x, y, width, height: 85, rx: 8, fill: palette.paper, stroke: palette.ink, "stroke-width": 2, opacity: .94 }); const text = append(group, "text", { x: x + 16, y: y + 24, fill: palette.ink, "font-family": "Georgia, serif", "font-size": 16 }); const words = world.notes.trim().split(/\s+/); const lines = []; let line = ""; for (const word of words) { const candidate = line ? `${line} ${word}` : word; if (candidate.length > 44 && line) { lines.push(line); line = word; } else line = candidate; if (lines.length === 2) break; } if (line && lines.length < 3) lines.push(line); lines.slice(0, 3).forEach((value, index) => { const tspan = append(text, "tspan", { x: x + 16, dy: index === 0 ? 0 : 21 }); tspan.textContent = value; }); }
 export function renderWorld(svg, world) {
-  brushMaskId = 0;
   svg.setAttribute("viewBox", `0 0 ${world.canvas.width} ${world.canvas.height}`); svg.replaceChildren(); append(svg, "rect", { class: "map-background", width: world.canvas.width, height: world.canvas.height, fill: palette.water });
   const terrainLayer = append(svg, "g", { class: "layer terrain-layer" }); for (const terrain of world.terrain) append(terrainLayer, "polygon", { points: pointsAttribute(terrain.points), fill: palette[terrain.type] }); for (const stroke of world.brushStrokes) renderBrushStroke(terrainLayer, stroke);
   const riverLayer = append(svg, "g", { class: "layer river-layer" }); for (const river of world.rivers) append(riverLayer, "path", { d: pathData(river.points), fill: "none", stroke: palette.river, "stroke-width": 7, "stroke-linecap": "round", "stroke-linejoin": "round" });

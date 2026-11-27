@@ -34,20 +34,19 @@ function restore(state, message) {
   const viewBox = map.getAttribute("viewBox");
   restoring = true;
   dataOutput.value = state;
+  map.dispatchEvent(new CustomEvent("history-restore", { detail: { viewBox } }));
   applyButton.click();
-  map.setAttribute("viewBox", viewBox);
-  map.dispatchEvent(new CustomEvent("history-view-restored", { detail: { viewBox } }));
   restoring = false;
   status.textContent = message;
   updateControls();
 }
-function historyIcon(path) {
+function icon(path) {
   return `<svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;
 }
 function addControls() {
-  document.querySelector("#undo-brush").remove();
-  const zoomIn = document.querySelector("#zoom-in");
-  zoomIn.insertAdjacentHTML("beforebegin", `<span class="history-controls"><button id="undo" class="icon-button" type="button" aria-label="Undo last edit" data-tooltip="Undo last edit" disabled>${historyIcon("M9 7H4v-5M4.6 7.3A8.5 8.5 0 1 1 6 18")}</button><button id="redo" class="icon-button" type="button" aria-label="Redo last edit" data-tooltip="Redo last edit" disabled>${historyIcon("M15 7h5v-5m-.6 5.3A8.5 8.5 0 1 0 18 18")}</button><label class="history-limit-control" for="history-limit">History <input id="history-limit" type="number" min="1" max="500" step="1" value="50" aria-label="Maximum undo history steps"></label></span>`);
+  document.querySelector("#undo-brush")?.remove();
+  const spacer = document.querySelector(".toolbar-spacer");
+  spacer.insertAdjacentHTML("afterend", `<span class="history-controls" role="group" aria-label="Edit history"><button id="undo" class="icon-button" type="button" aria-label="Undo last edit" data-tooltip="Undo last edit" disabled>${icon("M9 7H4V2M4.6 7.3A8.5 8.5 0 1 1 6 18")}</button><button id="redo" class="icon-button" type="button" aria-label="Redo last edit" data-tooltip="Redo last edit" disabled>${icon("M15 7h5V2m-.6 5.3A8.5 8.5 0 1 0 18 18")}</button><label class="history-limit-control" for="history-limit">History <input id="history-limit" type="number" min="1" max="500" step="1" value="50" aria-label="Maximum undo history steps"></label></span>`);
   undoButton = document.querySelector("#undo");
   redoButton = document.querySelector("#redo");
   limitInput = document.querySelector("#history-limit");

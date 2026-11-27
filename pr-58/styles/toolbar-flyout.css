@@ -8,6 +8,8 @@
   animation: none !important;
 }
 .tool-options-toolbar.animate-open { animation: reveal-tool-options 180ms ease-out !important; }
+.tool-options-content { display: flex; width: 100%; min-width: 0; align-items: center; flex-wrap: wrap; gap: .55rem; }
+.tool-options-content[hidden] { display: none; }
 
 .brush-flyout { justify-content: flex-start; }
 .brush-flyout label, .brush-flyout output { align-self: center; }

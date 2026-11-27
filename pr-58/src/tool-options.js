@@ -1,34 +1,23 @@
-const toolbars = [...document.querySelectorAll(".tool-options-toolbar")];
-let visibleToolbar = toolbars.find(toolbar => !toolbar.hidden) ?? null;
-let pendingSwitchTarget = null;
+const toolbar = document.querySelector("#tool-options-toolbar");
+const contents = [...toolbar.querySelectorAll(".tool-options-content")];
+let activeContent = null;
 
-function hideOtherToolbars(activeToolbar) {
-  toolbars.forEach(toolbar => {
-    if (toolbar === activeToolbar) return;
-    toolbar.hidden = true;
-    toolbar.classList.remove("is-open", "animate-open");
-  });
-}
-
-export function showToolOptions(toolbar) {
-  const switching = pendingSwitchTarget === toolbar;
-  pendingSwitchTarget = null;
-  hideOtherToolbars(toolbar);
-  toolbar.classList.toggle("animate-open", !switching && toolbar.hidden);
+export function showToolOptions(content) {
+  const opening = toolbar.hidden;
+  contents.forEach(item => { item.hidden = item !== content; });
+  toolbar.classList.toggle("animate-open", opening);
   toolbar.hidden = false;
-  toolbar.classList.add("is-open");
-  visibleToolbar = toolbar;
+  activeContent = content;
 }
 
-export function hideToolOptions(toolbar) {
+export function hideToolOptions(content) {
+  if (activeContent !== content) return;
+  content.hidden = true;
   toolbar.hidden = true;
-  toolbar.classList.remove("is-open", "animate-open");
-  if (visibleToolbar === toolbar && pendingSwitchTarget === null) visibleToolbar = null;
+  toolbar.classList.remove("animate-open");
+  activeContent = null;
 }
 
-document.addEventListener("click", event => {
-  const trigger = event.target.closest("button[aria-controls]");
-  const target = trigger && document.getElementById(trigger.getAttribute("aria-controls"));
-  if (!target?.classList.contains("tool-options-toolbar")) return;
-  if (visibleToolbar && visibleToolbar !== target) pendingSwitchTarget = target;
-}, true);
+export function isToolOptionsVisible(content) {
+  return !toolbar.hidden && activeContent === content;
+}

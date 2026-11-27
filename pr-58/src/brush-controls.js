@@ -1,4 +1,4 @@
-import { hideToolOptions, showToolOptions } from "./tool-options.js";
+import { hideToolOptions, isToolOptionsVisible, showToolOptions } from "./tool-options.js";
 
 const brushButton = document.querySelector("#brush-mode");
 const brushControls = document.querySelector("#brush-controls");
@@ -27,7 +27,7 @@ new MutationObserver(syncBrushToolbar).observe(brushButton, {
 syncBrushToolbar();
 
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && !brushControls.hidden) {
+  if (event.key === "Escape" && isToolOptionsVisible(brushControls)) {
     document.querySelector('button[data-mode="pan"]')?.click();
     brushButton.focus();
   }

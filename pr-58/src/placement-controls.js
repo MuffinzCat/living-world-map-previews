@@ -1,4 +1,4 @@
-import { hideToolOptions, showToolOptions } from "./tool-options.js";
+import { hideToolOptions, isToolOptionsVisible, showToolOptions } from "./tool-options.js";
 
 const placementFlyout = document.querySelector("#placement-controls");
 const placementTitle = document.querySelector("#placement-title");
@@ -30,7 +30,7 @@ placementButtons.forEach(button => {
 });
 
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && !placementFlyout.hidden) {
+  if (event.key === "Escape" && isToolOptionsVisible(placementFlyout)) {
     const returnFocus = activeButton;
     closePlacementFlyout();
     returnFocus?.focus();

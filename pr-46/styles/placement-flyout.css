@@ -5,8 +5,10 @@
 .placement-content-row { display: flex; align-items: flex-start; flex-wrap: wrap; gap: .45rem; min-width: 0; }
 #placement-title { padding-top: .55rem; white-space: nowrap; }
 #settlement-fields { display: grid; flex: 1 1 20rem; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .45rem; min-width: 0; }
-#settlement-name { width: 100%; min-width: 0; max-width: 100%; }
-#settlement-type { justify-self: start; }
+label[for="settlement-name"] { grid-column: 1; grid-row: 1; }
+#settlement-name { grid-column: 2; grid-row: 1; width: 100%; min-width: 0; max-width: 100%; }
+label[for="settlement-type"] { grid-column: 1; grid-row: 2; }
+#settlement-type { grid-column: 2; grid-row: 2; justify-self: start; }
 .placement-flyout label { font-size: .9rem; }
 .placement-action-row { display: flex; justify-content: flex-end; width: 100%; padding-top: .55rem; border-top: 1px solid var(--panel-border); }
 #cancel-placement { flex: 0 0 auto; }

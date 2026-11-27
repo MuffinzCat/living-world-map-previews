@@ -1,0 +1,6 @@
+.selection-actions { display: inline-flex; align-items: center; gap: .45rem; }
+.selection-actions[hidden] { display: none; }
+#selection-description { font-size: .9rem; font-weight: 700; white-space: nowrap; }
+#map .settlement.is-selected .settlement-symbol,
+#map .mountain-symbol.is-selected path:first-child { filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 3px #1f7aff); stroke: #1f7aff; stroke-width: 5; }
+@media (max-width: 700px) { .selection-actions { order: 2; flex-basis: 100%; } }

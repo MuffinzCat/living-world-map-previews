@@ -1,12 +1,11 @@
 import { renderBrushStroke } from "./map-renderer.js";
-import { generateMountainSymbols } from "./terrain-generation.js";
+import { previewMountainLayout, removeUnsupportedMountedSymbols } from "./terrain-generation.js";
 
 export function renderBrushPreview(layer, stroke, world) {
   layer.replaceChildren();
   renderBrushStroke(layer, stroke, "live-brush-stroke");
   if (stroke.type === "mountainRange" && world) {
-    const previewWorld = { ...world, mountains: world.mountains.filter(item => !item.suppressed) };
-    for (const mountain of generateMountainSymbols(previewWorld, stroke)) {
+    for (const mountain of previewMountainLayout(world, stroke)) {
       const group = layer.ownerDocument.createElementNS(layer.namespaceURI, "g");
       group.setAttribute("class", "live-generated-mountain");
       group.setAttribute("transform", `translate(${mountain.x} ${mountain.y})`);
@@ -18,5 +17,14 @@ export function renderBrushPreview(layer, stroke, world) {
       group.append(path);
       layer.append(group);
     }
+  }
+  if (world) {
+    const previewWorld = structuredClone(world);
+    if (["land", "water"].includes(stroke.type)) removeUnsupportedMountedSymbols(previewWorld, stroke);
+    const suppressedIds = new Set(previewWorld.mountains.filter(item => item.suppressed).map(item => item.id));
+    layer.ownerSVGElement?.querySelectorAll(".mountain-symbol[data-object-id]").forEach(node => {
+      const mountain = world.mountains.find(item => item.id === node.dataset.objectId);
+      node.setAttribute("visibility", mountain?.suppressed || suppressedIds.has(node.dataset.objectId) ? "hidden" : "visible");
+    });
   }
 }

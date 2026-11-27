@@ -94,6 +94,14 @@ export function generateMountainSymbols(world, stroke) {
   }));
 }
 
+export function previewMountainLayout(world, stroke) {
+  const previewWorld = {
+    ...world,
+    mountains: (world.mountains ?? []).filter(item => !item.suppressed)
+  };
+  return generateMountainSymbols(previewWorld, stroke);
+}
+
 export function commitMountainStroke(world, stroke) {
   if (!stroke.id) stroke.id = uniqueStrokeId(world);
   if (!world.brushStrokes.some(item => item.id === stroke.id)) world.brushStrokes.push(stroke);
@@ -114,4 +122,10 @@ export function removeUnsupportedMountedSymbols(world, replacementStroke) {
     if (!symbol.sourceId || symbol.suppressed) continue;
     if (pointWithinBrush([symbol.x, symbol.y], replacementStroke)) symbol.suppressed = true;
   }
+}
+
+export function removeMountainBrushStroke(world, strokeId) {
+  world.brushStrokes = (world.brushStrokes ?? []).filter(stroke => stroke.id !== strokeId);
+  world.mountains = (world.mountains ?? []).filter(mountain => mountain.sourceId !== strokeId);
+  return world;
 }

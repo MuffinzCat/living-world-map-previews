@@ -2,7 +2,7 @@ import { renderBrushPreview } from "./brush-preview.js";
 import { renderWorld } from "./map-renderer.js";
 import { fitAuthoredMap, panView, zoomView } from "./view-maths.js";
 import { exportWorldBounds, loadWorld, serialiseWorld, validateWorld } from "./world-data.js";
-import { commitMountainStroke, generateMountainSymbols, removeUnsupportedMountedSymbols, uniqueStrokeId } from "./terrain-generation.js";
+import { commitMountainStroke, removeUnsupportedMountedSymbols, removeMountainBrushStroke, uniqueStrokeId } from "./terrain-generation.js";
 
 const storageKey = "living-world-map";
 const map = document.querySelector("#map");
@@ -115,7 +115,7 @@ document.addEventListener("history-restore", event => {
   dataOutput.value = event.detail.state;
   applyJSON(false);
 });
-document.querySelector("#undo-brush").addEventListener("click", () => { if (!ensureCurrentJSON()) return; if (!world.brushStrokes.length) { setStatus("There are no brush strokes to undo."); return; } const removed = world.brushStrokes.pop(); world.mountains = world.mountains.filter(mountain => mountain.sourceId !== removed.id); refreshMap(); setStatus("Last brush stroke undone."); });
+document.querySelector("#undo-brush").addEventListener("click", () => { if (!ensureCurrentJSON()) return; if (!world.brushStrokes.length) { setStatus("There are no brush strokes to undo."); return; } const removed = world.brushStrokes.pop(); removeMountainBrushStroke(world, removed.id); refreshMap(); setStatus("Last brush stroke undone."); });
 document.querySelector("#add-settlement").addEventListener("click", beginSettlementPlacement);
 document.querySelector("#add-mountain").addEventListener("click", beginMountainPlacement);
 cancelPlacementButton.addEventListener("click", () => cancelPlacement());

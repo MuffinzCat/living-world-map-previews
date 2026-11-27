@@ -18,8 +18,8 @@ body.json-flyout-open .site-header, body.json-flyout-open .app-shell { margin-ri
 .panel-heading p { overflow-wrap: anywhere; }
 .data-heading { display: flex; min-width: 0; justify-content: space-between; align-items: center; gap: .5rem; }
 .toolbar { flex: 0 0 auto; padding: .55rem; border: 1px solid var(--panel-border); border-top: 0; background: var(--toolbar); }
-.tool-options-toolbar { position: relative; z-index: 1; display: flex; width: 100%; min-width: 0; max-width: 100%; flex: 0 0 auto; align-items: center; flex-wrap: wrap; gap: .55rem; padding: .55rem; overflow: hidden; border: 1px solid var(--panel-border); border-top: 0; color: inherit; background: var(--toolbar); transform-origin: top; animation: reveal-tool-options 180ms ease-out; }
-.tool-options-toolbar[hidden] { display: none; }
+.tool-options-toolbar { position: relative; z-index: 1; display: none; width: 100%; min-width: 0; max-width: 100%; flex: 0 0 auto; align-items: center; flex-wrap: wrap; gap: .55rem; padding: .55rem; overflow: hidden; border: 1px solid var(--panel-border); border-top: 0; color: inherit; background: var(--toolbar); transform-origin: top; }
+.tool-options-toolbar.is-open, .tool-options-toolbar:not([hidden]) { display: flex; animation: reveal-tool-options 180ms ease-out; }
 .toolbar-spacer { flex: 1 1 1rem; }
 button, select, input { max-width: 100%; font: inherit; }
 button, select, input[type="text"] { padding: .4rem .55rem; border: 1px solid var(--control-border); border-radius: 3px; color: var(--control-text); background: var(--control); }
@@ -57,7 +57,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 @media (max-width: 900px) { :root { --flyout-width: min(30rem, 46vw); } .site-header { align-items: stretch; flex-direction: column; } .actions { justify-content: flex-start; } }
 @media (max-width: 700px) { :root { --flyout-width: 100vw; } body.json-flyout-open .site-header, body.json-flyout-open .app-shell { margin-right: 0; } .site-header { max-height: 42dvh; overflow-y: auto; } .actions > button { flex: 1 1 9rem; } .toolbar-spacer { flex-basis: 100%; height: 0; } .tool-options-toolbar { align-items: stretch; } #brush-size { width: min(10rem, 45vw); } }
 @media (max-width: 420px) { .site-header p { display: none; } .panel-heading { padding: .45rem; } .toolbar { padding: .4rem; } .actions > button { flex-basis: 8rem; } }
-@media (prefers-reduced-motion: reduce) { .tool-options-toolbar { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .tool-options-toolbar.is-open, .tool-options-toolbar:not([hidden]) { animation: none; } }
 
 /* Generated only in pull-request previews. */
 #pr-preview-build { position: fixed; right: .75rem; bottom: .75rem; z-index: 100; display: grid; gap: .15rem; max-width: min(28rem, calc(100vw - 1.5rem)); padding: .55rem .7rem; border: 2px solid #f1c75b; border-radius: .35rem; color: #fff8e7; background: #30251dcc; box-shadow: 0 3px 14px #0008; font: 12px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; pointer-events: none; }

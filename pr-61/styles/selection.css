@@ -1,6 +1,9 @@
-.selection-actions { display: inline-flex; align-items: center; gap: .45rem; }
-.selection-actions[hidden] { display: none; }
-#selection-description { font-size: .9rem; font-weight: 700; white-space: nowrap; }
+.selection-flyout { display: flex; align-items: center; gap: .55rem; }
+.selection-flyout[hidden] { display: none; }
+#selection-description { min-width: 12rem; font-size: .9rem; font-weight: 700; }
+.selection-flyout .flyout-icon-button:disabled { cursor: not-allowed; opacity: .42; }
+.selection-flyout svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #map .settlement.is-selected .settlement-symbol,
 #map .mountain-symbol.is-selected path:first-child { filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 3px #1f7aff); stroke: #1f7aff; stroke-width: 5; }
-@media (max-width: 700px) { .selection-actions { order: 2; flex-basis: 100%; } }
+#map .selection-box { fill: rgb(31 122 255 / .14); stroke: #1f7aff; stroke-width: 2; stroke-dasharray: 8 5; vector-effect: non-scaling-stroke; pointer-events: none; }
+@media (max-width: 700px) { #selection-description { min-width: 0; flex: 1; } }

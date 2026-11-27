@@ -1,5 +1,7 @@
 const toolbar = document.querySelector("#tool-options-toolbar");
 const contents = [...toolbar.querySelectorAll(".tool-options-content")];
+const brushContent = document.querySelector("#brush-controls");
+const placementContent = document.querySelector("#placement-controls");
 let activeContent = null;
 
 export function showToolOptions(content) {
@@ -21,3 +23,9 @@ export function hideToolOptions(content) {
 export function isToolOptionsVisible(content) {
   return !toolbar.hidden && activeContent === content;
 }
+
+document.addEventListener("click", event => {
+  const trigger = event.target.closest("#brush-mode, button[data-placement]");
+  if (!trigger) return;
+  showToolOptions(trigger.id === "brush-mode" ? brushContent : placementContent);
+});

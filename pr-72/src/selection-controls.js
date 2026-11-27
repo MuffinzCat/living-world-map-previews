@@ -211,6 +211,11 @@ function updateDrag(event) {
     if (!object) continue;
     object.x = Math.round((original.x + dx) * 10) / 10;
     object.y = Math.round((original.y + dy) * 10) / 10;
+    if (object.sourceId) {
+      delete object.sourceId;
+      delete object.seed;
+      delete object.suppressed;
+    }
     const node = nodeFor(original.item);
     node?.setAttribute("transform", `translate(${object.x} ${object.y})`);
   }

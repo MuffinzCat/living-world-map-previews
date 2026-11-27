@@ -74,6 +74,9 @@ export function duplicateObjects(world, targets, offset = [20, 20]) {
       const original = world.forests.find(item => item.id === target.id);
       if (!original) continue;
       const copy = { ...original, id: uniqueId(world, "forest", original.id), x: original.x + offset[0], y: original.y + offset[1] };
+      delete copy.sourceId;
+      delete copy.seed;
+      delete copy.suppressed;
       world.forests.push(copy);
       copies.push({ kind: "forest", id: copy.id });
     }

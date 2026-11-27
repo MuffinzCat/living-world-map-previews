@@ -15,7 +15,7 @@ const COLLECTIONS = [
   "brushStrokes"
 ];
 const TERRAIN_TYPES = new Set(["land", "water"]);
-const BRUSH_TYPES = new Set(["land", "water", "mountainRange"]);
+const BRUSH_TYPES = new Set(["land", "water", "mountainRange", "forest"]);
 
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -352,6 +352,7 @@ export function validateWorld(input) {
       }
       if (item.sourceId !== undefined) requireString(item.sourceId, `${path}.sourceId`, { allowEmpty: false });
       if (item.suppressed !== undefined && typeof item.suppressed !== "boolean") throw new Error(`${path}.suppressed must be a boolean.`);
+      if (item.variation !== undefined && (!Number.isInteger(item.variation) || item.variation < 0)) throw new Error(`${path}.variation must be a non-negative integer.`);
     });
   }
   world.mountainRanges.forEach((item, index) => {
@@ -371,9 +372,7 @@ export function validateWorld(input) {
   const sourceIds = new Set(world.brushStrokes.map(stroke => stroke.id));
   for (const collection of ["mountains", "forests"]) {
     world[collection].forEach((item, index) => {
-      if (item.sourceId && !sourceIds.has(item.sourceId)) {
-        throw new Error(`${collection}[${index}].sourceId must reference an existing brush stroke.`);
-      }
+      if (item.sourceId && !sourceIds.has(item.sourceId)) throw new Error(`${collection}[${index}].sourceId must reference an existing brush stroke.`);
     });
   }
 

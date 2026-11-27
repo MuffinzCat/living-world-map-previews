@@ -1,0 +1,8 @@
+.placement-tool { position: relative; display: inline-flex; }
+.placement-flyout { position: absolute; z-index: 15; top: calc(100% + .55rem); left: 50%; display: flex; align-items: center; gap: .45rem; width: max-content; max-width: min(34rem, calc(100vw - 2rem)); padding: .55rem; border: 1px solid var(--panel-border); border-radius: 4px; color: inherit; background: var(--toolbar); box-shadow: 0 6px 18px var(--flyout-shadow); transform: translateX(-6rem); }
+.placement-flyout[hidden], #settlement-fields[hidden] { display: none; }
+.placement-flyout::before { position: absolute; top: -.35rem; left: 6.35rem; width: .65rem; height: .65rem; border-top: 1px solid var(--panel-border); border-left: 1px solid var(--panel-border); background: var(--toolbar); content: ""; transform: rotate(45deg); }
+#placement-title { white-space: nowrap; }
+#settlement-fields { display: contents; }
+.placement-flyout label { font-size: .9rem; }
+@media (max-width: 700px) { .placement-flyout { left: 0; max-width: calc(100vw - 1rem); flex-wrap: wrap; transform: none; } .placement-flyout::before { left: .85rem; } }

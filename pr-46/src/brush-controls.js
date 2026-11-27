@@ -9,6 +9,9 @@ function setBrushFlyout(open) {
 document.querySelectorAll("button[data-mode]").forEach(button => {
   button.addEventListener("click", () => setBrushFlyout(button === brushButton));
 });
+document.querySelectorAll("button[data-placement]").forEach(button => {
+  button.addEventListener("click", () => setBrushFlyout(false));
+});
 
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && !brushControls.hidden) {

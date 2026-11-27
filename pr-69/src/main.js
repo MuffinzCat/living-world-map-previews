@@ -2,7 +2,8 @@ import { renderBrushPreview } from "./brush-preview.js";
 import { renderWorld } from "./map-renderer.js";
 import { fitAuthoredMap, panView, zoomView } from "./view-maths.js";
 import { exportWorldBounds, loadWorld, serialiseWorld, validateWorld } from "./world-data.js";
-import { commitForestStroke, removeUnsupportedForestSymbols, uniqueForestStrokeId } from "./forest-generation.js";
+import { commitMountainStroke, removeUnsupportedMountedSymbols, removeMountainBrushStroke, uniqueStrokeId } from "./terrain-generation.js";
+import { commitForestStroke, removeUnsupportedForestSymbols, removeForestBrushStroke } from "./forest-generation.js";
 
 const storageKey = "living-world-map";
 const map = document.querySelector("#map");
@@ -93,7 +94,7 @@ map.addEventListener("pointerdown", event => {
     if (mode === "placement" && inside(point)) { completePlacement(point); event.preventDefault(); return; }
     if (mode === "select" && settlementNode) { const settlement = world.settlements.find(item => item.id === settlementNode.dataset.id); gesture = { kind: "settlement", pointerId: event.pointerId, node: settlementNode, settlement, offset: [point[0] - settlement.x, point[1] - settlement.y] }; }
     else if (mode === "pan" && !settlementNode) startPan(event);
-    else if (mode === "brush" && inside(point)) { const stroke = { id: uniqueForestStrokeId(world), type: brushType.value, size: Number(brushSize.value), points: [point] }; gesture = { kind: "brush", pointerId: event.pointerId, stroke }; placeLiveBrushLayer(); renderBrushPreview(liveLayer, stroke, world); }
+    else if (mode === "brush" && inside(point)) { const stroke = { id: uniqueStrokeId(world), type: brushType.value, size: Number(brushSize.value), points: [point] }; gesture = { kind: "brush", pointerId: event.pointerId, stroke }; placeLiveBrushLayer(); renderBrushPreview(liveLayer, stroke, world); }
     else return;
   }
   map.setPointerCapture(event.pointerId);
@@ -101,7 +102,7 @@ map.addEventListener("pointerdown", event => {
 });
 map.addEventListener("auxclick", event => { if (event.button === 1) event.preventDefault(); });
 map.addEventListener("pointermove", event => { const point = mapPoint(event); updateOutline(point); if (!gesture || event.pointerId !== gesture.pointerId) return; if (gesture.kind === "pan") { const rect = map.getBoundingClientRect(); view = panView(gesture.startView, gesture.startClient, { x: event.clientX, y: event.clientY }, { width: rect.width, height: rect.height }); applyView(); } else if (gesture.kind === "settlement") { const [offsetX, offsetY] = gesture.offset; gesture.settlement.x = Math.round((point[0] - offsetX) * 10) / 10; gesture.settlement.y = Math.round((point[1] - offsetY) * 10) / 10; gesture.node.setAttribute("transform", `translate(${gesture.settlement.x} ${gesture.settlement.y})`); updateRoads(gesture.settlement); } else if (gesture.kind === "brush" && inside(point)) { const last = gesture.stroke.points.at(-1); if (Math.hypot(point[0] - last[0], point[1] - last[1]) >= 2) { gesture.stroke.points.push(point); renderBrushPreview(liveLayer, gesture.stroke, world); } } });
-function finishGesture(event) { if (!gesture || event.pointerId !== gesture.pointerId) return; const completed = gesture; gesture = null; if (completed.kind === "brush") { if (completed.stroke.type === "forest") commitForestStroke(world, completed.stroke); else { world.brushStrokes.push(completed.stroke); removeUnsupportedForestSymbols(world, completed.stroke); } } if (completed.kind !== "pan") { syncJSON(); refreshMap(); } setStatus(`${completed.kind === "brush" ? "Brush stroke added." : completed.kind === "settlement" ? "Settlement moved." : "Map moved."} ${modeHelp[mode] ?? ""}`.trim()); }
+function finishGesture(event) { if (!gesture || event.pointerId !== gesture.pointerId) return; const completed = gesture; gesture = null; if (completed.kind === "brush") { if (completed.stroke.type === "mountainRange") commitMountainStroke(world, completed.stroke); else if (completed.stroke.type === "forest") commitForestStroke(world, completed.stroke); else { world.brushStrokes.push(completed.stroke); removeUnsupportedMountedSymbols(world, completed.stroke); removeUnsupportedForestSymbols(world, completed.stroke); } } if (completed.kind !== "pan") { syncJSON(); refreshMap(); } setStatus(`${completed.kind === "brush" ? "Brush stroke added." : completed.kind === "settlement" ? "Settlement moved." : "Map moved."} ${modeHelp[mode] ?? ""}`.trim()); }
 map.addEventListener("pointerup", finishGesture); map.addEventListener("pointercancel", finishGesture); map.addEventListener("pointerleave", () => { if (!gesture) brushOutline.setAttribute("visibility", "hidden"); });
 map.addEventListener("wheel", event => { event.preventDefault(); const [x, y] = mapPoint(event); const factor = event.deltaY < 0 ? .85 : 1.15; const next = zoomView(view, factor, { x, y }); if (next.width >= 40 && next.width <= 100000) { view = next; applyView(); } }, { passive: false });
 document.addEventListener("keydown", event => { if (event.key === "Escape" && pendingPlacement) { event.preventDefault(); cancelPlacement(); } });
@@ -115,7 +116,7 @@ document.addEventListener("history-restore", event => {
   dataOutput.value = event.detail.state;
   applyJSON(false);
 });
-document.querySelector("#undo-brush").addEventListener("click", () => { if (!ensureCurrentJSON()) return; if (!world.brushStrokes.length) { setStatus("There are no brush strokes to undo."); return; } const removed = world.brushStrokes.pop(); world.forests = world.forests.filter(forest => forest.sourceId !== removed.id); refreshMap(); setStatus("Last brush stroke undone."); });
+document.querySelector("#undo-brush").addEventListener("click", () => { if (!ensureCurrentJSON()) return; if (!world.brushStrokes.length) { setStatus("There are no brush strokes to undo."); return; } const removed = world.brushStrokes.pop(); removeMountainBrushStroke(world, removed.id); removeForestBrushStroke(world, removed.id); refreshMap(); setStatus("Last brush stroke undone."); });
 document.querySelector("#add-settlement").addEventListener("click", beginSettlementPlacement);
 document.querySelector("#add-mountain").addEventListener("click", beginMountainPlacement);
 cancelPlacementButton.addEventListener("click", () => cancelPlacement());

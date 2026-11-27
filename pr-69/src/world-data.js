@@ -1,3 +1,4 @@
+import { commitMountainStroke } from "./terrain-generation.js";
 export const CURRENT_FORMAT_VERSION = 2;
 
 export const DEFAULT_INITIAL_VIEW = Object.freeze({ x: -600, y: -400, width: 1200, height: 800 });
@@ -197,6 +198,22 @@ export function migrateWorld(input) {
     strokeIds.add(id);
     return { ...stroke, id };
   });
+  const legacyRanges = world.mountainRanges;
+  world.mountainRanges = [];
+  const usedRangeIds = new Set(world.brushStrokes.map(stroke => stroke.id));
+  for (let index = 0; index < legacyRanges.length; index += 1) {
+    const range = legacyRanges[index];
+    if (!isRecord(range) || !Array.isArray(range.points)) continue;
+    let id = `legacy-mountain-range-${index + 1}`;
+    let suffix = 2;
+    while (usedRangeIds.has(id)) id = `legacy-mountain-range-${index + 1}-${suffix++}`;
+    usedRangeIds.add(id);
+    const stroke = { id, type: "mountainRange", size: range.size ?? 40, points: clone(range.points) };
+    commitMountainStroke(world, stroke);
+  }
+  for (const stroke of world.brushStrokes) {
+    if (stroke.type === "mountainRange") commitMountainStroke(world, stroke);
+  }
 
   if (input.formatVersion === undefined || input.formatVersion === 1) {
     const canvas = input.canvas;

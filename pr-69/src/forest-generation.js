@@ -46,7 +46,9 @@ export function uniqueForestStrokeId(world) {
 export function generateForestSymbols(world, stroke) {
   const random = randomFrom(hashString(`${stroke.id}:${JSON.stringify(stroke.points)}:${stroke.size}`));
   const radius = Math.max(5, stroke.size / 2);
-  const spacing = Math.max(20, radius * 0.8);
+  const spacing = Math.max(12, radius * 0.6);
+  const minimumSpacing = (a, b) => (a + b) * 0.18;
+  const symbolSize = () => Math.round((34 + random() * 10) * 10) / 10;
   const candidates = [];
 
   if (stroke.points.length === 1) {
@@ -55,7 +57,7 @@ export function generateForestSymbols(world, stroke) {
     for (let index = 0; index < count; index += 1) {
       const angle = random() * Math.PI * 2;
       const distance = Math.sqrt(random()) * radius * 0.82;
-      candidates.push([x + Math.cos(angle) * distance, y + Math.sin(angle) * distance]);
+      candidates.push([x + Math.cos(angle) * distance, y + Math.sin(angle) * distance, symbolSize()]);
     }
   } else {
     for (let segment = 0; segment < stroke.points.length - 1; segment += 1) {
@@ -68,29 +70,42 @@ export function generateForestSymbols(world, stroke) {
         const centerX = a[0] + (b[0] - a[0]) * ratio;
         const centerY = a[1] + (b[1] - a[1]) * ratio;
         const angle = random() * Math.PI * 2;
-        const distance = random() * radius * 0.62;
-        candidates.push([centerX + Math.cos(angle) * distance, centerY + Math.sin(angle) * distance]);
+        const distance = random() * radius * 0.28;
+        candidates.push([centerX + Math.cos(angle) * distance, centerY + Math.sin(angle) * distance, symbolSize()]);
       }
     }
   }
 
   const used = world.forests.filter(item => !item.suppressed);
   const accepted = [];
-  for (const [x, y] of candidates) {
+  for (const [x, y, size] of candidates) {
     if (!pointWithinForest([x, y], stroke)) continue;
-    if (used.some(item => Math.hypot(item.x - x, item.y - y) < spacing * 0.42)) continue;
-    if (accepted.some(point => Math.hypot(point[0] - x, point[1] - y) < spacing * 0.42)) continue;
-    accepted.push([Math.round(x * 10) / 10, Math.round(y * 10) / 10]);
+    if (used.some(item => {
+      const itemSize = item.size ?? 39;
+      return Math.hypot(item.x - x, item.y - y) < minimumSpacing(itemSize, size);
+    })) continue;
+    if (accepted.some(item => {
+      return Math.hypot(item.x - x, item.y - y) < minimumSpacing(item.size, size);
+    })) continue;
+    accepted.push({ x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, size });
   }
-  return accepted.map(([x, y], index) => ({
+  return accepted.map(({ x, y, size }, index) => ({
     id: `forest-${stroke.id}-${index + 1}`,
     x,
     y,
-    size: Math.round((34 + random() * 10) * 10) / 10,
+    size,
     variation: Math.floor(random() * 3),
     sourceId: stroke.id,
     seed: hashString(`${stroke.id}:${index}`)
   }));
+}
+
+export function previewForestLayout(world, stroke) {
+  const previewWorld = {
+    ...world,
+    forests: (world.forests ?? []).filter(item => !item.suppressed)
+  };
+  return generateForestSymbols(previewWorld, stroke);
 }
 
 export function commitForestStroke(world, stroke) {
@@ -110,4 +125,10 @@ export function removeUnsupportedForestSymbols(world, replacementStroke) {
     if (!symbol.sourceId || symbol.suppressed) continue;
     if (pointWithinForest([symbol.x, symbol.y], replacementStroke)) symbol.suppressed = true;
   }
+}
+
+export function removeForestBrushStroke(world, strokeId) {
+  world.brushStrokes = (world.brushStrokes ?? []).filter(stroke => stroke.id !== strokeId);
+  world.forests = (world.forests ?? []).filter(forest => forest.sourceId !== strokeId);
+  return world;
 }

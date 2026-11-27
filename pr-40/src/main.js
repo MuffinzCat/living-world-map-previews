@@ -36,7 +36,7 @@ function inside([x, y]) { return x >= 0 && y >= 0 && x <= world.canvas.width && 
 function mapPoint(event) { const point = map.createSVGPoint(); point.x = event.clientX; point.y = event.clientY; const transformed = point.matrixTransform(map.getScreenCTM().inverse()); return rounded([transformed.x, transformed.y]); }
 function mapElement(name) { return map.ownerDocument.createElementNS(map.namespaceURI, name); }
 function makeInteractionLayer() { liveLayer = mapElement("g"); liveLayer.setAttribute("class", "live-brush-layer"); brushOutline = mapElement("circle"); brushOutline.setAttribute("class", "brush-outline"); brushOutline.setAttribute("visibility", "hidden"); map.append(liveLayer, brushOutline); }
-function placeLiveBrushLayer(stroke) { const target = map.querySelector(stroke.type === "mountainRange" ? ".mountain-layer" : ".terrain-layer"); target.after(liveLayer); }
+function placeLiveBrushLayer() { const target = map.querySelector(".terrain-layer"); target.after(liveLayer); }
 function refreshMap({ sync = true } = {}) { renderWorld(map, world); applyView(); makeInteractionLayer(); if (sync) syncJSON(); }
 function updateOutline(point) { if (mode !== "brush" || !inside(point)) { brushOutline.setAttribute("visibility", "hidden"); return; } brushOutline.setAttribute("cx", point[0]); brushOutline.setAttribute("cy", point[1]); brushOutline.setAttribute("r", Number(brushSize.value) / 2); brushOutline.setAttribute("visibility", "visible"); }
 function updatePlacementUI() {
@@ -80,7 +80,7 @@ map.addEventListener("pointerdown", event => {
   if (mode === "placement" && inside(point)) { completePlacement(point); event.preventDefault(); return; }
   if (mode === "select" && settlementNode) { const settlement = world.settlements.find(item => item.id === settlementNode.dataset.id); gesture = { kind: "settlement", pointerId: event.pointerId, node: settlementNode, settlement, offset: [point[0] - settlement.x, point[1] - settlement.y] }; }
   else if (mode === "pan" && !settlementNode) gesture = { kind: "pan", pointerId: event.pointerId, startClient: { x: event.clientX, y: event.clientY }, startView: { ...view } };
-  else if (mode === "brush" && inside(point)) { const stroke = { type: brushType.value, size: Number(brushSize.value), points: [point] }; gesture = { kind: "brush", pointerId: event.pointerId, stroke }; placeLiveBrushLayer(stroke); renderBrushPreview(liveLayer, stroke); }
+  else if (mode === "brush" && inside(point)) { const stroke = { type: brushType.value, size: Number(brushSize.value), points: [point] }; gesture = { kind: "brush", pointerId: event.pointerId, stroke }; placeLiveBrushLayer(); renderBrushPreview(liveLayer, stroke); }
   else return;
   map.setPointerCapture(event.pointerId);
   event.preventDefault();

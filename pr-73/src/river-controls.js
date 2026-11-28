@@ -15,6 +15,8 @@ const cancelButton = document.querySelector("#cancel-river");
 const editControls = document.querySelector("#river-edit-controls");
 const addPointButton = document.querySelector("#add-river-point");
 const removePointButton = document.querySelector("#remove-river-point");
+const modeSelect = document.querySelector("#river-mode-option");
+const smoothnessInput = document.querySelector("#river-smoothness");
 let selectedRiverId = null;
 let selectedPointIndex = null;
 let bendGesture = null;
@@ -89,6 +91,12 @@ function cancelRiver(message = "River operation cancelled.") {
 
 riverButton.addEventListener("click", () => showToolOptions(riverControls, riverButton));
 cancelButton.addEventListener("click", () => cancelRiver());
+modeSelect.addEventListener("change", () => {
+  smoothnessInput.disabled = modeSelect.value !== "draw";
+  status.textContent = modeSelect.value === "line"
+    ? "Line mode: select two points, or select an end node to continue."
+    : "Draw mode: drag to draw a river.";
+});
 
 addPointButton.addEventListener("click", () => {
   if (!selectedRiverId) return;
@@ -131,7 +139,18 @@ document.addEventListener("world-data-changed", refreshHandles);
 map.addEventListener("pointerdown", event => {
   const handle = event.composedPath().find(node => node instanceof Element && node.matches(".river-bend-handle"));
   if (!handle) return;
-  bendGesture = { pointerId: event.pointerId, index: Number(handle.dataset.bendIndex) };
+  const index = Number(handle.dataset.bendIndex);
+  const river = worldData().rivers.find(item => item.id === selectedRiverId);
+  if (modeSelect.value === "line" && river && (index === 0 || index === river.points.length - 1)) {
+    document.dispatchEvent(new CustomEvent("river-line-start", {
+      detail: { point: river.points[index], riverId: river.id, endIndex: index }
+    }));
+    event.preventDefault();
+    event.stopPropagation();
+    status.textContent = "Line mode: select an end point to continue.";
+    return;
+  }
+  bendGesture = { pointerId: event.pointerId, index };
   selectedPointIndex = bendGesture.index;
   document.dispatchEvent(new CustomEvent("history-action-start"));
   map.setPointerCapture(event.pointerId);

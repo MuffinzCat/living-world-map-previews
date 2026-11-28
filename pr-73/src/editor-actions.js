@@ -1,5 +1,21 @@
 export const SETTLEMENT_TYPES = ["village", "town", "city", "castle"];
 
+export function riverDrawSpacing(smoothness) {
+  const value = Number(smoothness);
+  const safe = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 50;
+  return 2 + safe / 100 * 18;
+}
+
+export function extendRiverFromEnd(world, riverId, endIndex, point) {
+  const river = world.rivers.find(item => item.id === riverId);
+  if (!river) throw new Error("The selected river no longer exists.");
+  if (!Array.isArray(point) || point.length !== 2 || !point.every(Number.isFinite)) throw new Error("River points must be finite [x, y] pairs.");
+  if (endIndex === 0) river.points.unshift([point[0], point[1]]);
+  else if (endIndex === river.points.length - 1) river.points.push([point[0], point[1]]);
+  else throw new Error("Line continuation is only allowed from a river end node.");
+  return river;
+}
+
 export function editSettlement(world, id, name, type) {
   const settlement = world.settlements.find(item => item.id === id);
   if (!settlement) throw new Error("The selected settlement no longer exists.");

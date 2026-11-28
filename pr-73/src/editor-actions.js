@@ -2,7 +2,7 @@ export const SETTLEMENT_TYPES = ["village", "town", "city", "castle"];
 
 export function riverDrawSpacing(smoothness) {
   const value = Number(smoothness);
-  const safe = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 50;
+  const safe = Number.isFinite(value) ? Math.max(0, Math.min(200, value)) : 50;
   return 2 + safe / 100 * 18;
 }
 
@@ -14,6 +14,14 @@ export function extendRiverFromEnd(world, riverId, endIndex, point) {
   else if (endIndex === river.points.length - 1) river.points.push([point[0], point[1]]);
   else throw new Error("Line continuation is only allowed from a river end node.");
   return river;
+}
+
+export function commitRiverLine(world, gesture) {
+  if (!Array.isArray(gesture?.points) || gesture.points.length !== 2) throw new Error("A river line needs exactly two points.");
+  if (gesture.sourceRiverId) {
+    return extendRiverFromEnd(world, gesture.sourceRiverId, gesture.sourceEndIndex, gesture.points[1]);
+  }
+  return addRiver(world, gesture.points);
 }
 
 export function editSettlement(world, id, name, type) {
